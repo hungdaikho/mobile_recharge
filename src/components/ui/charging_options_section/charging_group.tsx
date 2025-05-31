@@ -27,30 +27,30 @@ export default function ChargingGroup({
           {items.map((item, idx) => (
             <div key={idx} className="flex justify-center items-center sm:mt-8">
               <div
-                className="group flex justify-center items-center rounded-full md:p-2 border-2 md:border-4 transition-colors"
-                style={{ 
+                className="group flex justify-center items-center rounded-full p-2 border-2 md:border-none transition-colors"
+                style={{
                   borderColor: borderColor,
                   backgroundColor: idx === items.length - 1 ? backgroundColor : 'transparent'
                 }}
               >
                 <div
-                    className="
+                  className="
                         flex justify-center items-center rounded-full w-36 md:w-44 aspect-square cursor-pointer 
                         text-center md:border-2 bg-white transition-all duration-300 ease-in-out
                         group-hover:bg-[color:var(--dynamic-color)]
                     "
-                    style={{ 
-                        color, 
-                        borderColor: color,
-                        '--dynamic-color': color
-                    } as React.CSSProperties}
+                  style={{
+                    color,
+                    borderColor: color,
+                    '--dynamic-color': color
+                  } as React.CSSProperties}
                 >
-                    <div className="group-hover:text-white transition-colors duration-300">
-                        <div className="text-3xl md:text-4xl font-bold mb-1">
-                            {item.euro} Euro
-                        </div>
-                        <div className="text-2xl opacity-90">{item.lei}</div>
+                  <div className="group-hover:text-white transition-colors duration-300">
+                    <div className="text-3xl md:text-4xl font-bold mb-1">
+                      {item.euro} Euro
                     </div>
+                    <div className="text-2xl opacity-90">{item.lei}</div>
+                  </div>
                 </div>
               </div>
             </div>
