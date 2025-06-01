@@ -1,5 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import "../globals.css";
+import ReduxProvider from "@/redux/provider";
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
@@ -10,7 +12,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <html lang="en">
       <body className="font-sans antialiased bg-gray-100">
-        {children}
+        <ReduxProvider>
+          {children}
+        </ReduxProvider>
       </body>
     </html>
   );

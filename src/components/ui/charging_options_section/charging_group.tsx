@@ -1,4 +1,9 @@
-// components/ChargingGroup.tsx
+"use client"
+
+import { updateChargeItem } from "@/redux/charge.slice";
+import { useDispatch } from "react-redux";
+import { useRouter } from 'next/navigation';
+
 interface ChargingGroupProps {
   title: string;
   color: string;
@@ -14,6 +19,24 @@ export default function ChargingGroup({
   borderColor,
   backgroundColor
 }: ChargingGroupProps) {
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const onSelectOptions = (options: any) => {
+    dispatch(updateChargeItem({ index: 0, data: { type: title, amount: options.euro } }));
+    switch (title) {
+      case 'Orange Charging':
+        router.push(`/operators/orange`);
+        break;
+      case 'Telekom Charging':
+        router.push(`/operators/telekom`);
+        break;
+      case 'Vodafone Charging':
+        router.push(`/operators/vodafone`);
+        break;
+      default:
+        break;
+    }
+  }
   return (
     <section className="overflow-hidden py-10 md:py-20 px-4">
       <div className="max-w-7xl m-auto">
@@ -25,7 +48,7 @@ export default function ChargingGroup({
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {items.map((item, idx) => (
-            <div key={idx} className="flex justify-center items-center sm:mt-8">
+            <div key={idx} className="flex justify-center items-center sm:mt-8" onClick={() => onSelectOptions(item)}>
               <div
                 className="group flex justify-center items-center rounded-full p-2 border-2 md:border-none transition-colors"
                 style={{

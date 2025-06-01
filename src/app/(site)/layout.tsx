@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "../globals.css";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import ReduxProvider from "@/redux/provider";
+
 
 
 export const metadata: Metadata = {
@@ -19,9 +21,11 @@ export default function RootLayout({
       <body
         className="font-sans antialiased bg-gray-100"
       >
-        <Header />
-        <main className="bg-gray-100">{children}</main>
-        <Footer />
+        <ReduxProvider>
+          <Header />
+          <main className="bg-gray-100">{children}</main>
+          <Footer />
+        </ReduxProvider>
       </body>
     </html>
   );
