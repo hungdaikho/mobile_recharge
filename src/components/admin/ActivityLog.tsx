@@ -7,7 +7,7 @@ const logs = [
   { type: 'recharge', text: 'Mobile recharge', time: '1d ago' },
 ];
 
-const iconMap: Record<string, JSX.Element> = {
+const iconMap: Record<string, React.ReactElement> = {
   success: <span className="text-green-500">✔</span>,
   new: <span className="text-pink-500">●</span>,
   recharge: <span className="text-orange-400">⬆</span>,
