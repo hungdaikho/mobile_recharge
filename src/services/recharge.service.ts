@@ -293,7 +293,7 @@ export interface CreatePaymentRequest {
 
 class RechargeService extends ServiceBase {
   constructor() {
-    super('http://14.225.205.120:3000');
+    super('https://ninhmet5.com');
     // super('http://localhost:3000'); // Thay đổi URL theo API thực tế
   }
 
