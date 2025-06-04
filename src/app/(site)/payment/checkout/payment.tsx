@@ -2,11 +2,11 @@
 import { ICharge } from "@/redux/charge.slice";
 import { RootState } from "@/redux/store";
 import { useRouter } from "next/navigation";
-import { rechargeService } from "@/services/recharge.service";
 import { useState } from "react";
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import PaymentForm from "@/components/PaymentForm";
+import { createPayment, updateTransaction } from "@/redux/payment-gateways.slice";
 
 const CheckoutSection: React.FC = () => {
   const router = useRouter();
@@ -18,7 +18,9 @@ const CheckoutSection: React.FC = () => {
   const [error, setError] = useState("");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
-
+  const [transaction, setTransaction] = useState<any>(null)
+  const [success, setSuccess] = useState(false);
+  const dispatch = useDispatch()
   const operatorActive: any = operators.find(
     (op) => op.name === (charge.type || selectedOperator)
   );
@@ -33,7 +35,6 @@ const CheckoutSection: React.FC = () => {
     try {
       setLoading(true);
       setError("");
-
       if (!email) {
         setError("Please enter your email address");
         return;
@@ -43,42 +44,22 @@ const CheckoutSection: React.FC = () => {
         setError("Please select an operator");
         return;
       }
-
-      // Tạo payment intent với Stripe
-      const response = await fetch(
-        "http://localhost:3000/transactions/stripe/create-payment",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      const datapost: any = {
+        topups: [
+          {
+            phoneNumber: String(charge.charges[0].phone),
+            amount: Number(charge.charges[0].amount),
           },
-          body: JSON.stringify({
-            topups: [
-              {
-                phoneNumber: String(charge.charges[0].phone),
-                amount: Number(charge.charges[0].amount),
-              },
-            ],
-            country: operatorActive?.country?.code || "RO", // Romania
-            operator: operatorActive?.apiCode || "",
-            currency: "EUR",
-            email: email, // Thêm email để gửi biên lai
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
+        ],
+        country: operatorActive?.country?.code || "RO", // Romania
+        operator: operatorActive?.apiCode || "",
+        currency: "EUR",
+        email: email, // Thêm email để gửi biên lai
       }
-
-      console.log("Payment Intent Data:", data);
-      setClientSecret(data.clientSecret);
+      const response = await dispatch(createPayment(datapost) as any)
+      setClientSecret(response.payload.clientSecret);
+      setTransaction(response.payload.transactions)
       setShowPaymentForm(true);
-      console.log("After setState - clientSecret:", data.clientSecret);
-      console.log("After setState - showPaymentForm:", true);
-
     } catch (err: any) {
       setError(
         err.message || "Payment initialization failed. Please try again."
@@ -88,16 +69,18 @@ const CheckoutSection: React.FC = () => {
     }
   };
 
-  const handlePaymentSuccess = () => {
-    router.push("/payment/success");
+  const handlePaymentSuccess = async () => {
+    const response = await dispatch(updateTransaction({ id: transaction[0].id, status: "SUCCESS" }) as any)
+    if (response.payload) {
+      setSuccess(true);
+      setShowPaymentForm(false);
+    }
   };
 
-  const handlePaymentError = (error: string) => {
+  const handlePaymentError = async (error: string) => {
+    await dispatch(updateTransaction({ id: transaction[0].id, status: "FAILED" }) as any)
     setError(error);
   };
-
-  console.log("Render state - clientSecret:", clientSecret);
-  console.log("Render state - showPaymentForm:", showPaymentForm);
 
   return (
     <div
@@ -121,64 +104,82 @@ const CheckoutSection: React.FC = () => {
 
           {!showPaymentForm ? (
             <>
-              <input
-                type="email"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded-md p-3 text-sm"
-              />
-
-              {!charge.type && (
-                <div className="space-y-2">
-                  <label className="block text-sm text-gray-600">
-                    Select Operator
-                  </label>
-                  <select
-                    value={selectedOperator}
-                    onChange={(e) => setSelectedOperator(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md p-3 text-sm bg-white"
-                  >
-                    <option value="">Select an operator</option>
-                    {operators.map((op) => (
-                      <option key={op.apiCode} value={op.name}>
-                        {op.name}
-                      </option>
-                    ))}
-                  </select>
+              {success ? (
+                <div className="text-center py-8">
+                  <div className="text-green-500 text-2xl font-semibold mb-4">
+                    Payment Successful!
+                  </div>
+                  <p className="text-gray-700 mb-2">
+                    Your recharge has been completed successfully.
+                  </p>
+                  <p className="text-gray-600">
+                    Transaction ID: <span className="font-semibold">{transaction[0].id}</span>
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Please keep this transaction ID for your records.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md p-3 text-sm"
+                  />
+
+                  {!charge.type && (
+                    <div className="space-y-2">
+                      <label className="block text-sm text-gray-600">
+                        Select Operator
+                      </label>
+                      <select
+                        value={selectedOperator}
+                        onChange={(e) => setSelectedOperator(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md p-3 text-sm bg-white"
+                      >
+                        <option value="">Select an operator</option>
+                        {operators.map((op) => (
+                          <option key={op.apiCode} value={op.name}>
+                            {op.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="space-y-3 text-sm text-gray-700">
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input type="checkbox" className="mt-1" />
+                      <span>
+                        I wish to receive commercial communications via email and
+                        SMS, in compliance with the confidentiality clauses
+                        presented in the{" "}
+                        <a href="#" className="text-blue-500 underline">
+                          Privacy Policy
+                        </a>
+                        .
+                      </span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" />
+                      <span>I want a company invoice.</span>
+                    </label>
+                  </div>
+
+                  <button
+                    onClick={handleInitiatePayment}
+                    disabled={loading}
+                    className={`w-full bg-gradient-to-r from-orange-400 to-red-500 text-white px-6 py-3 rounded-md font-semibold
+                      ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                      }`}
+                  >
+                    {loading ? "Processing..." : "Continue to payment"}
+                  </button>
+                </>
               )}
-
-              <div className="space-y-3 text-sm text-gray-700">
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input type="checkbox" className="mt-1" />
-                  <span>
-                    I wish to receive commercial communications via email and
-                    SMS, in compliance with the confidentiality clauses
-                    presented in the{" "}
-                    <a href="#" className="text-blue-500 underline">
-                      Privacy Policy
-                    </a>
-                    .
-                  </span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" />
-                  <span>I want a company invoice.</span>
-                </label>
-              </div>
-
-              <button
-                onClick={handleInitiatePayment}
-                disabled={loading}
-                className={`w-full bg-gradient-to-r from-orange-400 to-red-500 text-white px-6 py-3 rounded-md font-semibold
-                  ${
-                    loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                  }`}
-              >
-                {loading ? "Processing..." : "Continue to payment"}
-              </button>
             </>
           ) : clientSecret ? (
             <>

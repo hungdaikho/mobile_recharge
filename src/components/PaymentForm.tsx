@@ -16,7 +16,7 @@ interface PaymentFormProps {
   onError: (error: string) => void;
 }
 
-const STRIPE_PUBLISHABLE_KEY = "pk_live_51RVWjQClE0dir0i9en7KTdmRU5bgT9z9GSgKL9aHm7g8gQaeWrgs52pqRZFJRnscpuGxo5hEqeEnBtgNeHxkyyA300IkdXEzkN";
+const STRIPE_PUBLISHABLE_KEY = "pk_test_51RWCoEQhAcgp7Y5mbu6ms7vd40n4JTKVF9gz5awwo5snPvRs2mgf3o2GNRYGsSiZvyu74C5GBRHMerQwb7IazJjl00pFeAiomY";
 
 const PaymentFormContent = ({
   amount,
@@ -44,27 +44,21 @@ const PaymentFormContent = ({
       console.log("Stripe or Elements not initialized");
       return;
     }
-
     setIsProcessing(true);
     setMessage("");
-
     try {
-      console.log("Confirming payment...");
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         redirect: "if_required",
       });
 
       if (error) {
-        console.error("Payment error:", error);
         setMessage(error.message || "Payment failed");
         onError(error.message || "Payment failed");
       } else if (paymentIntent.status === "succeeded") {
-        console.log("Payment succeeded:", paymentIntent);
         setMessage("Payment successful!");
         onSuccess();
       } else {
-        console.log("Payment status:", paymentIntent.status);
         setMessage(`Payment status: ${paymentIntent.status}`);
       }
     } catch (err: any) {

@@ -86,18 +86,17 @@ export default function StatisticsPage() {
   const operatorColumns = [
     {
       title: 'Operator',
-      dataIndex: 'operatorName',
+      dataIndex: ['operator', 'name'],
       key: 'operatorName',
       render: (name: string, record: any) => (
         <div className="flex items-center gap-2">
           <span>{name}</span>
-          <span className="text-gray-500 text-sm">({record.operatorId})</span>
         </div>
       ),
     },
     {
       title: 'Country',
-      dataIndex: 'countryCode',
+      dataIndex: ['operator', 'countryCode'],
       key: 'countryCode',
       render: (code: string) => {
         const country = countries.find(c => c.code === code);

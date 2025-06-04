@@ -280,159 +280,175 @@ export interface UpdateApiCredentialRequest {
   status?: 'active' | 'inactive';
 }
 
+export interface CreatePaymentRequest {
+  topups: {
+    phoneNumber: string;
+    amount: number;
+  }[];
+  country: string;
+  operator: string;
+  currency: string;
+  email: string;
+}
+
 class RechargeService extends ServiceBase {
-    constructor() {
-        // super('http://14.225.205.120:3000');
-        super('http://localhost:3000'); // Thay đổi URL theo API thực tế
-    }
+  constructor() {
+    // super('http://14.225.205.120:3000');
+    super('http://localhost:3000'); // Thay đổi URL theo API thực tế
+  }
 
-    // ==== AUTH ====
-    login = async (data: LoginRequest): Promise<LoginResponse> => {
-      return this.post<LoginResponse>('/auth/login', data);
-    }
-    info = async (): Promise<any> => {
-      return this.get<any>('/admin/me');
-    }
-    // ==== ADMIN ====
-    createAdmin = async (data: CreateAdminRequest): Promise<CreateAdminResponse> => {
-      return this.post<CreateAdminResponse>('/admin/create', data);
-    }
+  // ==== AUTH ====
+  login = async (data: LoginRequest): Promise<LoginResponse> => {
+    return this.post<LoginResponse>('/auth/login', data);
+  }
+  info = async (): Promise<any> => {
+    return this.get<any>('/admin/me');
+  }
+  // ==== ADMIN ====
+  createAdmin = async (data: CreateAdminRequest): Promise<CreateAdminResponse> => {
+    return this.post<CreateAdminResponse>('/admin/create', data);
+  }
 
-    // ==== NEWS ====
-    getNewsList = async (isPublished?: boolean): Promise<NewsListResponse> => {
-      return this.get<NewsListResponse>('/news', { params: isPublished !== undefined ? { isPublished } : {} });
-    }
+  // ==== NEWS ====
+  getNewsList = async (isPublished?: boolean): Promise<NewsListResponse> => {
+    return this.get<NewsListResponse>('/news', { params: isPublished !== undefined ? { isPublished } : {} });
+  }
 
-    getNewsDetail = async (slug: string): Promise<NewsItem> => {
-      return this.get<NewsItem>(`/news/${slug}`);
-    }
+  getNewsDetail = async (slug: string): Promise<NewsItem> => {
+    return this.get<NewsItem>(`/news/${slug}`);
+  }
 
-    createNews = async (data: CreateNewsRequest): Promise<NewsItem> => {
-      return this.post<NewsItem>('/news', data);
-    }
+  createNews = async (data: CreateNewsRequest): Promise<NewsItem> => {
+    return this.post<NewsItem>('/news', data);
+  }
 
-    updateNews = async (id: string, data: UpdateNewsRequest): Promise<NewsItem> => {
-      return this.put<NewsItem>(`/news/${id}`, data);
-    }
+  updateNews = async (id: string, data: UpdateNewsRequest): Promise<NewsItem> => {
+    return this.put<NewsItem>(`/news/${id}`, data);
+  }
 
-    deleteNews = async (id: string): Promise<void> => {
-      return this.delete<void>(`/news/${id}`);
-    }
+  deleteNews = async (id: string): Promise<void> => {
+    return this.delete<void>(`/news/${id}`);
+  }
 
-    // ==== TRANSACTIONS ====
-    createTransaction = async (data: CreateTransactionRequest): Promise<TransactionResponse> => {
-        return this.post<TransactionResponse>('/transactions', data);
-    }
+  // ==== TRANSACTIONS ====
+  createTransaction = async (data: CreateTransactionRequest): Promise<TransactionResponse> => {
+    return this.post<TransactionResponse>('/transactions', data);
+  }
+  updateTransaction = async (data: { id: string, status: string }) => {
+    return this.put(`/transactions/${data.id}`, { status: data.status })
+  }
+  createPayment = async (data: CreatePaymentRequest) => {
+    return this.post('/transactions/stripe/create-payment', data);
+  }
+  getTransactions = async (params: GetTransactionsParams): Promise<TransactionsListResponse> => {
+    return this.get<TransactionsListResponse>('/transactions', { params });
+  }
 
-    getTransactions = async (params: GetTransactionsParams): Promise<TransactionsListResponse> => {
-        return this.get<TransactionsListResponse>('/transactions', { params });
-    }
+  // ==== STATISTICS ====
+  getStatisticsSummary = async (params: StatisticsParams): Promise<StatisticsSummaryResponse> => {
+    return this.get<StatisticsSummaryResponse>('/statistics/summary', { params });
+  }
 
-    // ==== STATISTICS ====
-    getStatisticsSummary = async (params: StatisticsParams): Promise<StatisticsSummaryResponse> => {
-      return this.get<StatisticsSummaryResponse>('/statistics/summary', { params });
-    }
+  getOperatorStatistics = async (params: StatisticsParams): Promise<OperatorStatisticsResponse[]> => {
+    return this.get<OperatorStatisticsResponse[]>('/statistics/operators', { params });
+  }
 
-    getOperatorStatistics = async (params: StatisticsParams): Promise<OperatorStatisticsResponse[]> => {
-      return this.get<OperatorStatisticsResponse[]>('/statistics/operators', { params });
-    }
+  exportStatistics = async (data: ExportStatisticsRequest): Promise<Blob> => {
+    return this.post<Blob>('/statistics/export', data, {
+      responseType: 'blob'
+    });
+  }
 
-    exportStatistics = async (data: ExportStatisticsRequest): Promise<Blob> => {
-      return this.post<Blob>('/statistics/export', data, {
-        responseType: 'blob'
-      });
-    }
+  // ==== ACTIVITY LOGS ====
+  getActivityLogs = async (params: ActivityLogParams): Promise<ActivityLogListResponse> => {
+    return this.get<ActivityLogListResponse>('/activity-logs', { params });
+  }
 
-    // ==== ACTIVITY LOGS ====
-    getActivityLogs = async (params: ActivityLogParams): Promise<ActivityLogListResponse> => {
-      return this.get<ActivityLogListResponse>('/activity-logs', { params });
-    }
+  // ==== OPERATOR ====
+  getOperators = async (): Promise<OperatorListResponse> => {
+    return this.get<OperatorListResponse>('/operators');
+  }
 
-    // ==== OPERATOR ====
-    getOperators = async (): Promise<OperatorListResponse> => {
-      return this.get<OperatorListResponse>('/operators');
-    }
+  getOperatorDetail = async (id: string): Promise<Operator> => {
+    return this.get<Operator>(`/operators/${id}`);
+  }
 
-    getOperatorDetail = async (id: string): Promise<Operator> => {
-      return this.get<Operator>(`/operators/${id}`);
-    }
+  createOperator = async (data: CreateOperatorRequest): Promise<Operator> => {
+    return this.post<Operator>('/operators', data);
+  }
 
-    createOperator = async (data: CreateOperatorRequest): Promise<Operator> => {
-      return this.post<Operator>('/operators', data);
-    }
+  updateOperator = async (id: string, data: UpdateOperatorRequest): Promise<Operator> => {
+    return this.put<Operator>(`/operators/${id}`, data);
+  }
 
-    updateOperator = async (id: string, data: UpdateOperatorRequest): Promise<Operator> => {
-      return this.put<Operator>(`/operators/${id}`, data);
-    }
+  deleteOperator = async (id: string): Promise<void> => {
+    return this.delete<void>(`/operators/${id}`);
+  }
 
-    deleteOperator = async (id: string): Promise<void> => {
-      return this.delete<void>(`/operators/${id}`);
-    }
+  // ==== COUNTRY ====
+  getCountries = async (): Promise<CountryListResponse> => {
+    return this.get<CountryListResponse>('/countries');
+  }
 
-    // ==== COUNTRY ====
-    getCountries = async (): Promise<CountryListResponse> => {
-      return this.get<CountryListResponse>('/countries');
-    }
+  getCountryDetail = async (code: string): Promise<Country> => {
+    return this.get<Country>(`/countries/${code}`);
+  }
 
-    getCountryDetail = async (code: string): Promise<Country> => {
-      return this.get<Country>(`/countries/${code}`);
-    }
+  createCountry = async (data: CreateCountryRequest): Promise<Country> => {
+    return this.post<Country>('/countries', data);
+  }
 
-    createCountry = async (data: CreateCountryRequest): Promise<Country> => {
-      return this.post<Country>('/countries', data);
-    }
+  updateCountry = async (code: string, data: UpdateCountryRequest): Promise<Country> => {
+    return this.put<Country>(`/countries/${code}`, data);
+  }
 
-    updateCountry = async (code: string, data: UpdateCountryRequest): Promise<Country> => {
-      return this.put<Country>(`/countries/${code}`, data);
-    }
+  deleteCountry = async (code: string): Promise<void> => {
+    return this.delete<void>(`/countries/${code}`);
+  }
 
-    deleteCountry = async (code: string): Promise<void> => {
-      return this.delete<void>(`/countries/${code}`);
-    }
+  async getPaymentSettings(): Promise<PaymentSettings> {
+    const response = await this.get('/api-credentials?type=PAYMENT');
+    return response as PaymentSettings;
+  }
 
-    async getPaymentSettings(): Promise<PaymentSettings> {
-        const response = await this.get('/api-credentials?type=PAYMENT');
-        return response as PaymentSettings;
-    }
+  async updatePaymentSettings(settings: PaymentSettings): Promise<PaymentSettings> {
+    const response = await this.put('/api-credentials/payment', settings);
+    return response as PaymentSettings;
+  }
 
-    async updatePaymentSettings(settings: PaymentSettings): Promise<PaymentSettings> {
-        const response = await this.put('/api-credentials/payment', settings);
-        return response as PaymentSettings;
-    }
+  // ==== PAYMENT GATEWAY ====
+  getPaymentGateways = async (): Promise<PaymentGateway[]> => {
+    return this.get<PaymentGateway[]>('/payment-gateways');
+  }
 
-    // ==== PAYMENT GATEWAY ====
-    getPaymentGateways = async (): Promise<PaymentGateway[]> => {
-        return this.get<PaymentGateway[]>('/payment-gateways');
-    }
+  createPaymentGateway = async (data: CreatePaymentGatewayRequest): Promise<PaymentGateway> => {
+    return this.post<PaymentGateway>('/payment-gateways', data);
+  }
 
-    createPaymentGateway = async (data: CreatePaymentGatewayRequest): Promise<PaymentGateway> => {
-        return this.post<PaymentGateway>('/payment-gateways', data);
-    }
+  updatePaymentGateway = async (id: string, data: Partial<CreatePaymentGatewayRequest>): Promise<PaymentGateway> => {
+    return this.put<PaymentGateway>(`/payment-gateways/${id}`, data);
+  }
 
-    updatePaymentGateway = async (id: string, data: Partial<CreatePaymentGatewayRequest>): Promise<PaymentGateway> => {
-        return this.put<PaymentGateway>(`/payment-gateways/${id}`, data);
-    }
+  deletePaymentGateway = async (id: string): Promise<void> => {
+    return this.delete<void>(`/payment-gateways/${id}`);
+  }
 
-    deletePaymentGateway = async (id: string): Promise<void> => {
-        return this.delete<void>(`/payment-gateways/${id}`);
-    }
+  // ==== API CREDENTIALS ====
+  getApiCredentials = async (type?: 'PAYMENT' | 'TOPUP'): Promise<ApiCredential[]> => {
+    return this.get<ApiCredential[]>('/api-credentials', { params: type ? { type } : {} });
+  }
 
-    // ==== API CREDENTIALS ====
-    getApiCredentials = async (type?: 'PAYMENT' | 'TOPUP'): Promise<ApiCredential[]> => {
-        return this.get<ApiCredential[]>('/api-credentials', { params: type ? { type } : {} });
-    }
+  createApiCredential = async (data: CreateApiCredentialRequest): Promise<ApiCredential> => {
+    return this.post<ApiCredential>('/api-credentials', data);
+  }
 
-    createApiCredential = async (data: CreateApiCredentialRequest): Promise<ApiCredential> => {
-        return this.post<ApiCredential>('/api-credentials', data);
-    }
+  updateApiCredential = async (id: string, data: UpdateApiCredentialRequest): Promise<ApiCredential> => {
+    return this.put<ApiCredential>(`/api-credentials/${id}`, data);
+  }
 
-    updateApiCredential = async (id: string, data: UpdateApiCredentialRequest): Promise<ApiCredential> => {
-        return this.put<ApiCredential>(`/api-credentials/${id}`, data);
-    }
-
-    deleteApiCredential = async (id: string): Promise<void> => {
-        return this.delete<void>(`/api-credentials/${id}`);
-    }
+  deleteApiCredential = async (id: string): Promise<void> => {
+    return this.delete<void>(`/api-credentials/${id}`);
+  }
 }
 
 export const rechargeService = new RechargeService();

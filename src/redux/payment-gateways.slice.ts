@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { rechargeService, PaymentGateway, CreatePaymentGatewayRequest } from '@/services/recharge.service';
+import { rechargeService, PaymentGateway, CreatePaymentGatewayRequest, CreatePaymentRequest } from '@/services/recharge.service';
 
 interface PaymentGatewaysState {
   gateways: PaymentGateway[];
@@ -60,7 +60,12 @@ export const deletePaymentGateway = createAsyncThunk(
     }
   }
 );
-
+export const updateTransaction = createAsyncThunk('paymentGateways/updateTransaction', (data: {id: string, status: string})=>{
+  return rechargeService.updateTransaction(data)
+})
+export const createPayment = createAsyncThunk('paymentGateways/createPayment', (data: CreatePaymentRequest)=>{
+  return rechargeService.createPayment(data)
+})
 const paymentGatewaysSlice = createSlice({
   name: 'paymentGateways',
   initialState,
