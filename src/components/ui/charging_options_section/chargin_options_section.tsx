@@ -1,31 +1,23 @@
-import { orangeChargingData, telekomChargingData, vodafoneChargingData } from "@/constants/data.telecom";
+"use client";
+import {
+  orangeChargingData,
+} from "@/constants/data.telecom";
 import ChargingGroup from "./charging_group";
-
+import { useSelector } from "react-redux";
+import { OperatorState } from "@/redux/operator.slice";
 
 export default function ChargingOptionsSection() {
+  const operators: OperatorState = useSelector((state: any) => state.operator);
+  return operators.operators.map((operator) => {
     return (
-        <>
-            <ChargingGroup
-                title="Telekom Charging"
-                color="rgb(226, 0, 116)"
-                borderColor="rgb(189, 0, 97)"
-                backgroundColor="rgb(255, 73, 166)"
-                items={telekomChargingData}
-            />
-            <ChargingGroup
-                title="Orange Charging"
-                color="rgb(255, 121, 0)"
-                borderColor="rgb(222, 105, 0)"
-                backgroundColor="rgb(255, 147, 51)"
-                items={orangeChargingData}
-            />
-            <ChargingGroup
-                title="Vodafone Charging"
-                color="rgb(226, 31, 29)"
-                borderColor="rgb(187, 24, 23)"
-                backgroundColor="rgb(255, 71, 70)"
-                items={vodafoneChargingData}
-            />
-        </>
+      <ChargingGroup
+        title={operator.name}
+        color={operator.color ?? "rgb(86, 0, 255)"}
+        borderColor={operator.color ?? "rgb(86, 0, 255)"}
+        backgroundColor={operator.color ?? "rgb(86, 0, 255)"}
+        items={orangeChargingData}
+        apiCode={operator.apiCode}
+      />
     );
+  });
 }

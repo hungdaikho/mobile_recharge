@@ -12,7 +12,7 @@ export const fetchOperators = createAsyncThunk(
   }
 );
 
-interface OperatorState {
+export interface OperatorState {
   operators: Operator[];
   loading: boolean;
   error: string | null;
