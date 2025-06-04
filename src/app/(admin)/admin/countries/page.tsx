@@ -15,7 +15,6 @@ import {
 } from '@/redux/country.slice';
 import type { RootState, AppDispatch } from '@/redux/store';
 import CustomCKEditor from '@/components/CKEditor';
-import { Input as AntInput } from 'antd';
 import ColorPickerInput from '@/components/ColorPickerInput';
 
 function stripHtml(html: string) {

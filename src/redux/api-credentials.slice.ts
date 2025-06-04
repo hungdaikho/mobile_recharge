@@ -15,13 +15,11 @@ const initialState: ApiCredentialsState = {
 
 export const fetchApiCredentials = createAsyncThunk(
   'apiCredentials/fetchCredentials',
-  async (type?: 'PAYMENT' | 'TOPUP', { rejectWithValue }) => {
-    try {
-      const response = await rechargeService.getApiCredentials(type);
-      return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to fetch API credentials');
-    }
+  async (type?: 'PAYMENT' | 'TOPUP') => {
+
+    const response = await rechargeService.getApiCredentials(type);
+    return response;
+
   }
 );
 
