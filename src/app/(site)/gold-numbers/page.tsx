@@ -7,7 +7,7 @@ type Props = {}
 const page = (props: Props) => {
   return (
     <>
-        <SubHeader content="Gold Numbers" />
+        <SubHeader height='150px'  content="Gold Numbers" />
         <GoldNumbersList />
     </>
   )

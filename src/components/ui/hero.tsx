@@ -256,7 +256,7 @@ export default function HeroSection({ bgColor }: { bgColor?: string }) {
                                                         charge.charges[0]?.phone !== "" &&
                                                         charge.charges[0]?.amount !== "" &&
                                                         accept
-                                                            ? { backgroundColor: "rgb(86, 0, 255)" }
+                                                            ? { backgroundColor: bgColor ?? "rgb(86, 0, 255)" }
                                                             : {}
                                                     }
                                                     onClick={() => router.push("/payment/checkout")}

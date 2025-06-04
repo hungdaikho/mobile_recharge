@@ -93,13 +93,35 @@ export interface NewsListResponse {
 
 // ==== STATISTICS ====
 export interface StatisticsParams {
-  date?: string;
+  startDate: string;
+  endDate: string;
   country?: string;
+  operator?: string;
+  groupBy?: 'day' | 'month' | 'year';
 }
 
-export interface StatisticsResponse {
-  // Định nghĩa tuỳ theo backend trả về
-  [key: string]: any;
+export interface StatisticsSummaryResponse {
+  totalTransactions: number;
+  totalAmount: number;
+  successRate: number;
+  averageAmount: number;
+}
+
+export interface OperatorStatisticsResponse {
+  operatorId: string;
+  operatorName: string;
+  countryCode: string;
+  totalTransactions: number;
+  totalAmount: number;
+  successRate: number;
+}
+
+export interface ExportStatisticsRequest {
+  startDate: string;
+  endDate: string;
+  country?: string;
+  operator?: string;
+  format: 'pdf' | 'excel';
 }
 
 // ==== ACTIVITY LOGS ====
@@ -124,16 +146,153 @@ export interface ActivityLogListResponse {
   limit: number;
 }
 
+// ==== OPERATOR ====
+export interface Operator {
+  id: string;
+  name: string;
+  logoUrl: string;
+  apiCode: string;
+  countryCode: string;
+  description?: string;
+  color?: string;
+}
+
+export interface OperatorListResponse {
+  data: Operator[];
+}
+
+export interface CreateOperatorRequest {
+  name: string;
+  logoUrl: string;
+  apiCode: string;
+  countryCode: string;
+  description?: string;
+  color?: string;
+}
+
+export interface UpdateOperatorRequest {
+  name?: string;
+  logoUrl?: string;
+  apiCode?: string;
+  countryCode?: string;
+  description?: string;
+  color?: string;
+}
+
+// ==== COUNTRY ====
+export interface Country {
+  code: string;
+  name: string;
+  currency: string;
+  flagUrl: string;
+  operators?: Operator[];
+}
+
+export interface CountryListResponse {
+  data: Country[];
+}
+
+export interface CreateCountryRequest {
+  code: string;
+  name: string;
+  currency: string;
+  flagUrl: string;
+}
+
+export interface UpdateCountryRequest {
+  name?: string;
+  currency?: string;
+  flagUrl?: string;
+}
+
+// ==== PAYMENT SETTINGS ====
+export interface PaymentSettings {
+  stripe: {
+    enabled: boolean;
+    publicKey: string;
+    secretKey: string;
+    webhookSecret: string;
+  };
+  paypal: {
+    enabled: boolean;
+    clientId: string;
+    clientSecret: string;
+    mode: 'sandbox' | 'live';
+  };
+}
+
+// ==== PAYMENT GATEWAY ====
+export interface PaymentGateway {
+  id: string;
+  name: string;
+  type: 'card' | 'bank' | 'crypto' | 'mobile';
+  status: 'active' | 'inactive';
+  config: Record<string, any>;
+}
+
+export interface CreatePaymentGatewayRequest {
+  name: string;
+  type: 'card' | 'bank' | 'crypto' | 'mobile';
+  config: Record<string, any>;
+}
+
+// ==== API CREDENTIALS ====
+export interface ApiCredential {
+  id: string;
+  name: string;
+  type: 'PAYMENT' | 'TOPUP';
+  apiKey: string;
+  apiSecret: string;
+  baseUrl?: string;
+  metadata?: {
+    mode?: 'sandbox' | 'live';
+    provider?: 'stripe' | 'paypal' | 'reloadly';
+    [key: string]: any;
+  };
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateApiCredentialRequest {
+  name: string;
+  type: 'PAYMENT' | 'TOPUP';
+  apiKey: string;
+  apiSecret: string;
+  baseUrl?: string;
+  metadata?: {
+    mode?: 'sandbox' | 'live';
+    provider?: 'stripe' | 'paypal' | 'reloadly';
+    [key: string]: any;
+  };
+}
+
+export interface UpdateApiCredentialRequest {
+  name?: string;
+  apiKey?: string;
+  apiSecret?: string;
+  baseUrl?: string;
+  metadata?: {
+    mode?: 'sandbox' | 'live';
+    provider?: 'stripe' | 'paypal' | 'reloadly';
+    [key: string]: any;
+  };
+  status?: 'active' | 'inactive';
+}
+
 class RechargeService extends ServiceBase {
     constructor() {
-        super('http://localhost:3000');
+        // super('http://14.225.205.120:3000');
+        super('http://localhost:3000'); // Thay đổi URL theo API thực tế
     }
 
     // ==== AUTH ====
     login = async (data: LoginRequest): Promise<LoginResponse> => {
       return this.post<LoginResponse>('/auth/login', data);
     }
-
+    info = async (): Promise<any> => {
+      return this.get<any>('/admin/me');
+    }
     // ==== ADMIN ====
     createAdmin = async (data: CreateAdminRequest): Promise<CreateAdminResponse> => {
       return this.post<CreateAdminResponse>('/admin/create', data);
@@ -170,17 +329,109 @@ class RechargeService extends ServiceBase {
     }
 
     // ==== STATISTICS ====
-    getStatistics = async (params: StatisticsParams): Promise<StatisticsResponse> => {
-      return this.get<StatisticsResponse>('/statistics', { params });
+    getStatisticsSummary = async (params: StatisticsParams): Promise<StatisticsSummaryResponse> => {
+      return this.get<StatisticsSummaryResponse>('/statistics/summary', { params });
     }
 
-    generateStatistics = async (): Promise<void> => {
-      return this.post<void>('/statistics/generate');
+    getOperatorStatistics = async (params: StatisticsParams): Promise<OperatorStatisticsResponse[]> => {
+      return this.get<OperatorStatisticsResponse[]>('/statistics/operators', { params });
+    }
+
+    exportStatistics = async (data: ExportStatisticsRequest): Promise<Blob> => {
+      return this.post<Blob>('/statistics/export', data, {
+        responseType: 'blob'
+      });
     }
 
     // ==== ACTIVITY LOGS ====
     getActivityLogs = async (params: ActivityLogParams): Promise<ActivityLogListResponse> => {
       return this.get<ActivityLogListResponse>('/activity-logs', { params });
+    }
+
+    // ==== OPERATOR ====
+    getOperators = async (): Promise<OperatorListResponse> => {
+      return this.get<OperatorListResponse>('/operators');
+    }
+
+    getOperatorDetail = async (id: string): Promise<Operator> => {
+      return this.get<Operator>(`/operators/${id}`);
+    }
+
+    createOperator = async (data: CreateOperatorRequest): Promise<Operator> => {
+      return this.post<Operator>('/operators', data);
+    }
+
+    updateOperator = async (id: string, data: UpdateOperatorRequest): Promise<Operator> => {
+      return this.put<Operator>(`/operators/${id}`, data);
+    }
+
+    deleteOperator = async (id: string): Promise<void> => {
+      return this.delete<void>(`/operators/${id}`);
+    }
+
+    // ==== COUNTRY ====
+    getCountries = async (): Promise<CountryListResponse> => {
+      return this.get<CountryListResponse>('/countries');
+    }
+
+    getCountryDetail = async (code: string): Promise<Country> => {
+      return this.get<Country>(`/countries/${code}`);
+    }
+
+    createCountry = async (data: CreateCountryRequest): Promise<Country> => {
+      return this.post<Country>('/countries', data);
+    }
+
+    updateCountry = async (code: string, data: UpdateCountryRequest): Promise<Country> => {
+      return this.put<Country>(`/countries/${code}`, data);
+    }
+
+    deleteCountry = async (code: string): Promise<void> => {
+      return this.delete<void>(`/countries/${code}`);
+    }
+
+    async getPaymentSettings(): Promise<PaymentSettings> {
+        const response = await this.get('/api-credentials?type=PAYMENT');
+        return response as PaymentSettings;
+    }
+
+    async updatePaymentSettings(settings: PaymentSettings): Promise<PaymentSettings> {
+        const response = await this.put('/api-credentials/payment', settings);
+        return response as PaymentSettings;
+    }
+
+    // ==== PAYMENT GATEWAY ====
+    getPaymentGateways = async (): Promise<PaymentGateway[]> => {
+        return this.get<PaymentGateway[]>('/payment-gateways');
+    }
+
+    createPaymentGateway = async (data: CreatePaymentGatewayRequest): Promise<PaymentGateway> => {
+        return this.post<PaymentGateway>('/payment-gateways', data);
+    }
+
+    updatePaymentGateway = async (id: string, data: Partial<CreatePaymentGatewayRequest>): Promise<PaymentGateway> => {
+        return this.put<PaymentGateway>(`/payment-gateways/${id}`, data);
+    }
+
+    deletePaymentGateway = async (id: string): Promise<void> => {
+        return this.delete<void>(`/payment-gateways/${id}`);
+    }
+
+    // ==== API CREDENTIALS ====
+    getApiCredentials = async (type?: 'PAYMENT' | 'TOPUP'): Promise<ApiCredential[]> => {
+        return this.get<ApiCredential[]>('/api-credentials', { params: type ? { type } : {} });
+    }
+
+    createApiCredential = async (data: CreateApiCredentialRequest): Promise<ApiCredential> => {
+        return this.post<ApiCredential>('/api-credentials', data);
+    }
+
+    updateApiCredential = async (id: string, data: UpdateApiCredentialRequest): Promise<ApiCredential> => {
+        return this.put<ApiCredential>(`/api-credentials/${id}`, data);
+    }
+
+    deleteApiCredential = async (id: string): Promise<void> => {
+        return this.delete<void>(`/api-credentials/${id}`);
     }
 }
 

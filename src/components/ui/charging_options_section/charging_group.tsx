@@ -10,6 +10,7 @@ interface ChargingGroupProps {
   items: { euro: number | string; lei: string }[];
   borderColor: string
   backgroundColor: string
+  apiCode: string
 }
 
 export default function ChargingGroup({
@@ -17,25 +18,14 @@ export default function ChargingGroup({
   color,
   items,
   borderColor,
-  backgroundColor
+  backgroundColor,
+  apiCode
 }: ChargingGroupProps) {
   const dispatch = useDispatch();
   const router = useRouter();
   const onSelectOptions = (options: any) => {
     dispatch(updateChargeItem({ index: 0, data: { type: title, amount: options.euro } }));
-    switch (title) {
-      case 'Orange Charging':
-        router.push(`/operators/orange`);
-        break;
-      case 'Telekom Charging':
-        router.push(`/operators/telekom`);
-        break;
-      case 'Vodafone Charging':
-        router.push(`/operators/vodafone`);
-        break;
-      default:
-        break;
-    }
+    router.push(`/operators/${apiCode}`);
   }
   return (
     <section className="overflow-hidden py-10 md:py-20 px-4">

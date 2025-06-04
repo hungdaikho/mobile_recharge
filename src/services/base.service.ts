@@ -2,46 +2,50 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
 export class ServiceBase {
   protected api: AxiosInstance;
-  private token: string | null = null;
 
   constructor(baseURL: string) {
     this.api = axios.create({
       baseURL,
       timeout: 10000,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     });
 
-    // Add interceptor to inject token if available
+    // Request interceptor: thêm token nếu có
     this.api.interceptors.request.use((config) => {
-      if (this.token) {
+      const token = localStorage.getItem('token');
+      if (token) {
         config.headers = config.headers || {};
-        config.headers['Authorization'] = `Bearer ${this.token}`;
+        config.headers['Authorization'] = `Bearer ${token}`;
       }
       return config;
     });
-  }
 
-  setToken(token: string) {
-    this.token = token;
-  }
-
-  clearToken() {
-    this.token = null;
+    // Response interceptor: xử lý lỗi 401
+    this.api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          // Không redirect trực tiếp, chỉ throw về phía component
+        }
+        return Promise.reject(error);
+      }
+    );
   }
 
   get<T>(url: string, config?: AxiosRequestConfig) {
-    return this.api.get<T>(url, config).then(res => res.data);
+    return this.api.get<T>(url, config).then((res) => res.data);
   }
 
   post<T>(url: string, data?: any, config?: AxiosRequestConfig) {
-    return this.api.post<T>(url, data, config).then(res => res.data);
+    return this.api.post<T>(url, data, config).then((res) => res.data);
   }
 
   put<T>(url: string, data?: any, config?: AxiosRequestConfig) {
-    return this.api.put<T>(url, data, config).then(res => res.data);
+    return this.api.put<T>(url, data, config).then((res) => res.data);
   }
 
   delete<T>(url: string, config?: AxiosRequestConfig) {
-    return this.api.delete<T>(url, config).then(res => res.data);
+    return this.api.delete<T>(url, config).then((res) => res.data);
   }
 }

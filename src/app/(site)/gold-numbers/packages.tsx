@@ -1,6 +1,6 @@
 export default function GoldNumbersList() {
     return (
-        <div className="min-h-screen text-[#e0a640] font-sans py-10 md:py-24">
+        <div className="min-h-screen text-[#e0a640] font-sans py-5 md:py-14">
             <h1 className="text-5xl font-semibold text-center mb-8">Gold Numbers</h1>
             <div className="flex justify-center items-center gap-4 mb-10">
                 <select className="bg-transparent border border-[#e0a640] text-[#e0a640] px-4 py-2 rounded w-48">
