@@ -14,8 +14,17 @@ import {
   updateOperator
 } from '@/redux/country.slice';
 import type { RootState, AppDispatch } from '@/redux/store';
-import CustomCKEditor from '@/components/CKEditor';
-import ColorPickerInput from '@/components/ColorPickerInput';
+import dynamic from 'next/dynamic';
+
+const CustomCKEditor = dynamic(() => import('@/components/CKEditor'), {
+  ssr: false,
+  loading: () => <Input.TextArea rows={4} disabled />
+});
+
+const ColorPickerInput = dynamic(() => import('@/components/ColorPickerInput'), {
+  ssr: false,
+  loading: () => <Input disabled />
+});
 
 function stripHtml(html: string) {
   if (!html) return '';
