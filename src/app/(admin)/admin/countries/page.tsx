@@ -19,13 +19,8 @@ import ColorPickerInput from '@/components/ColorPickerInput';
 
 function stripHtml(html: string) {
   if (!html) return '';
-  if (typeof window === 'undefined') {
-    // SSR: fallback đơn giản loại bỏ tag
-    return html.replace(/<[^>]+>/g, '');
-  }
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  return div.textContent || div.innerText || '';
+  // Chỉ sử dụng regex để loại bỏ HTML tags
+  return html.replace(/<[^>]+>/g, '');
 }
 
 export default function CountriesPage() {
