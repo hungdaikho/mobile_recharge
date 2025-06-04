@@ -62,19 +62,145 @@
 ---
 
 ## 4. Giao dịch
-### Tạo giao dịch nạp tiền
+### Tạo giao dịch nạp tiền đơn lẻ
 - **Phương thức:** POST
 - **Endpoint:** `/transactions`
 - **Body:**
-  - Theo định nghĩa CreateTransactionDto (số điện thoại, nhà mạng, mệnh giá, ...)
-- **Mô tả:** Tạo giao dịch nạp tiền.
+  ```json
+  {
+    "phoneNumber": "0986001234",
+    "country": "VN",
+    "operator": "VIETTEL",
+    "amount": 50000,
+    "currency": "VND",
+    "type": "TOPUP",
+    "paymentMethod": "DIRECT"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "id": "uuid",
+    "phoneNumber": "0986001234",
+    "country": "VN",
+    "operator": "VIETTEL",
+    "amount": 50000,
+    "currency": "VND",
+    "status": "SUCCESS",
+    "type": "TOPUP",
+    "paymentMethod": "DIRECT",
+    "createdAt": "2024-03-20T10:00:00Z",
+    "updatedAt": "2024-03-20T10:00:05Z"
+  }
+  ```
+- **Mô tả:** Tạo giao dịch nạp tiền đơn lẻ và thực hiện nạp tiền ngay lập tức.
+
+### Tạo giao dịch nạp tiền hàng loạt qua Stripe
+- **Phương thức:** POST
+- **Endpoint:** `/transactions/stripe/create-payment`
+- **Body:**
+  ```json
+  {
+    "topups": [
+      {
+        "phoneNumber": "0986001234",
+        "amount": 50000
+      },
+      {
+        "phoneNumber": "0986005678",
+        "amount": 100000
+      }
+    ],
+    "country": "VN",
+    "operator": "VIETTEL",
+    "currency": "VND"
+  }
+  ```
+- **Giới hạn:**
+  - Số lượng số điện thoại: 1-10 số/lần
+  - Số tiền tối thiểu: 10,000 VND hoặc $0.1 USD
+  - Số tiền tối đa mỗi số: 10M VND hoặc $100 USD
+  - Tổng số tiền tối đa: 50M VND hoặc $500 USD
+  - Tiền tệ hỗ trợ: VND, USD
+- **Response:**
+  ```json
+  {
+    "clientSecret": "pi_xxx_secret_xxx",
+    "paymentIntentId": "pi_xxx",
+    "transactions": [
+      {
+        "id": "uuid",
+        "phoneNumber": "0986001234",
+        "amount": 50000,
+        "status": "PENDING",
+        "createdAt": "2024-03-20T10:00:00Z",
+        "updatedAt": "2024-03-20T10:00:00Z"
+      }
+    ]
+  }
+  ```
+- **Mô tả:** Tạo giao dịch nạp tiền hàng loạt và khởi tạo thanh toán qua Stripe.
+
+### Webhook Stripe
+- **Phương thức:** POST
+- **Endpoint:** `/transactions/stripe/webhook`
+- **Headers:**
+  - `stripe-signature`: Chữ ký xác thực từ Stripe
+- **Mô tả:** Webhook nhận kết quả thanh toán từ Stripe. Xử lý:
+  - Khi thanh toán thành công:
+    + Cập nhật trạng thái transaction thành SUCCESS
+    + Thực hiện nạp tiền
+    + Nếu nạp tiền thất bại, tự động hoàn tiền (refund)
+  - Khi thanh toán thất bại:
+    + Cập nhật trạng thái transaction thành FAILED
+    + Ghi log thất bại
 
 ### Lấy danh sách giao dịch (Yêu cầu đăng nhập)
 - **Phương thức:** GET
 - **Endpoint:** `/transactions`
-- **Query:**
-  - `date`, `country`, `status`, `operator`, `page`, `limit`, `sort`, `order`
+- **Query Parameters:**
+  - `date` (string, optional): Lọc theo ngày (format: YYYY-MM-DD)
+  - `country` (string, optional): Lọc theo mã quốc gia
+  - `status` (string, optional): Lọc theo trạng thái (PENDING, SUCCESS, FAILED, REFUNDED)
+  - `operator` (string, optional): Lọc theo nhà mạng
+  - `page` (number, default: 1): Trang hiện tại
+  - `limit` (number, default: 20): Số lượng kết quả mỗi trang
+  - `sort` (string, default: 'createdAt'): Trường sắp xếp
+  - `order` (string, default: 'desc'): Thứ tự sắp xếp (asc/desc)
+- **Response:**
+  ```json
+  {
+    "items": [
+      {
+        "id": "uuid",
+        "phoneNumber": "0986001234",
+        "country": "VN",
+        "operator": "VIETTEL",
+        "amount": 50000,
+        "currency": "VND",
+        "status": "SUCCESS",
+        "type": "TOPUP",
+        "paymentMethod": "STRIPE",
+        "createdAt": "2024-03-20T10:00:00Z",
+        "updatedAt": "2024-03-20T10:00:05Z"
+      }
+    ],
+    "total": 100,
+    "page": 1,
+    "limit": 20
+  }
+  ```
 - **Mô tả:** Lấy danh sách giao dịch, hỗ trợ lọc và phân trang.
+
+### Trạng thái giao dịch
+- **PENDING**: Đang chờ thanh toán hoặc đang xử lý
+- **SUCCESS**: Thanh toán và nạp tiền thành công
+- **FAILED**: Thanh toán thất bại
+- **REFUNDED**: Đã hoàn tiền do nạp tiền thất bại
+
+### Phương thức thanh toán
+- **DIRECT**: Thanh toán trực tiếp
+- **STRIPE**: Thanh toán qua Stripe
 
 ---
 
@@ -121,107 +247,4 @@
 - **Phương thức:** GET
 - **Endpoint:** `/activity-logs`
 - **Query:**
-  - `phoneNumber`, `date`, `page`, `limit`
-- **Mô tả:** Lấy danh sách nhật ký hoạt động, hỗ trợ lọc và phân trang.
-
----
-
-## 7. Nhà mạng (Operator)
-### Lấy danh sách nhà mạng
-- **Phương thức:** GET
-- **Endpoint:** `/operators`
-- **Mô tả:** Lấy danh sách tất cả nhà mạng, bao gồm thông tin quốc gia và các loại sim.
-
-### Tạo nhà mạng (Yêu cầu đăng nhập)
-- **Phương thức:** POST
-- **Endpoint:** `/operators`
-- **Body:**
-  - `name` (string): Tên nhà mạng
-  - `logoUrl` (string): Link logo
-  - `apiCode` (string): Mã code tích hợp API
-  - `countryCode` (string): Mã quốc gia
-  - `description` (string, optional): Mô tả nhà mạng (có thể là text hoặc HTML)
-- **Mô tả:** Tạo mới một nhà mạng.
-
-### Cập nhật nhà mạng (Yêu cầu đăng nhập)
-- **Phương thức:** PUT
-- **Endpoint:** `/operators/:id`
-- **Body:**
-  - Các trường cần cập nhật (name, logoUrl, apiCode, countryCode, description, ...)
-- **Mô tả:** Cập nhật thông tin nhà mạng.
-
-### Xóa nhà mạng (Yêu cầu đăng nhập)
-- **Phương thức:** DELETE
-- **Endpoint:** `/operators/:id`
-- **Mô tả:** Xóa một nhà mạng.
-
----
-
-## 8. Quốc gia (Country)
-### Lấy danh sách quốc gia
-- **Phương thức:** GET
-- **Endpoint:** `/countries`
-- **Mô tả:** Lấy danh sách tất cả quốc gia, bao gồm thông tin nhà mạng.
-
-### Tạo quốc gia (Yêu cầu đăng nhập)
-- **Phương thức:** POST
-- **Endpoint:** `/countries`
-- **Body:**
-  - `code` (string): Mã quốc gia
-  - `name` (string): Tên quốc gia
-  - `currency` (string): Đơn vị tiền tệ
-  - `flagUrl` (string): Link cờ quốc gia
-- **Mô tả:** Tạo mới một quốc gia.
-
-### Cập nhật quốc gia (Yêu cầu đăng nhập)
-- **Phương thức:** PUT
-- **Endpoint:** `/countries/:code`
-- **Body:**
-  - Các trường cần cập nhật (name, currency, flagUrl, ...)
-- **Mô tả:** Cập nhật thông tin quốc gia.
-
-### Xóa quốc gia (Yêu cầu đăng nhập)
-- **Phương thức:** DELETE
-- **Endpoint:** `/countries/:code`
-- **Mô tả:** Xóa một quốc gia.
-
-## 9. API Credentials
-### Tạo API Credential (Yêu cầu đăng nhập và quyền admin)
-- **Phương thức:** POST
-- **Endpoint:** `/api-credentials`
-- **Body:**
-  - `name` (string): Tên của credential (ví dụ: "Reloadly", "Stripe")
-  - `type` (string): Loại credential (ví dụ: "PAYMENT", "TOPUP")
-  - `apiKey` (string): API key
-  - `apiSecret` (string): API secret
-  - `baseUrl` (string, optional): Base URL của API
-  - `metadata` (object, optional): Thông tin bổ sung
-- **Mô tả:** Tạo mới một API credential.
-
-### Lấy danh sách API Credentials (Yêu cầu đăng nhập và quyền admin)
-- **Phương thức:** GET
-- **Endpoint:** `/api-credentials`
-- **Mô tả:** Lấy danh sách tất cả API credentials.
-
-### Lấy chi tiết API Credential (Yêu cầu đăng nhập và quyền admin)
-- **Phương thức:** GET
-- **Endpoint:** `/api-credentials/:id`
-- **Mô tả:** Lấy thông tin chi tiết của một API credential.
-
-### Cập nhật API Credential (Yêu cầu đăng nhập và quyền admin)
-- **Phương thức:** PATCH
-- **Endpoint:** `/api-credentials/:id`
-- **Body:**
-  - `name` (string, optional): Tên của credential
-  - `type` (string, optional): Loại credential
-  - `apiKey` (string, optional): API key
-  - `apiSecret` (string, optional): API secret
-  - `baseUrl` (string, optional): Base URL của API
-  - `isActive` (boolean, optional): Trạng thái hoạt động
-  - `metadata` (object, optional): Thông tin bổ sung
-- **Mô tả:** Cập nhật thông tin của một API credential.
-
-### Xóa API Credential (Yêu cầu đăng nhập và quyền admin)
-- **Phương thức:** DELETE
-- **Endpoint:** `/api-credentials/:id`
-- **Mô tả:** Xóa một API credential. 
+  - `
