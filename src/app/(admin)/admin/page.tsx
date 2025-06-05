@@ -59,7 +59,7 @@ export default function AdminDashboard() {
                 <div className="flex flex-col gap-2 md:gap-4">
                     <ModuleCard title="Multi-Language" desc="English, Romanian..." color="cyan" />
                     <ModuleCard onclick={initDataFromReloadly} title="Init Data From Reloadly" desc="Get countries, operators, products, etc." color="purple" />
-                    <ModuleCard title="FAQ & Content" desc="Editable by Admin" color="red" />
+                    <ModuleCard onclick={()=>router.push("/admin/faq-content")} title="FAQ & Content" desc="Editable by Admin" color="red" />
                     <ModuleCard title="VIP Numbers" desc="Showcase Module" color="green" />
                 </div>
             </div>

@@ -9,6 +9,8 @@ import statisticsReducer from './statistics.slice';
 import paymentSettingsReducer from './payment-settings.slice';
 import paymentGatewaysReducer from './payment-gateways.slice';
 import apiCredentialsReducer from './api-credentials.slice';
+import stripeSlice from './stripe.slice';
+import faqSlice from './faq.slice';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +24,8 @@ export const store = configureStore({
     paymentSettings: paymentSettingsReducer,
     paymentGateways: paymentGatewaysReducer,
     apiCredentials: apiCredentialsReducer,
+    stripe: stripeSlice,
+    faq: faqSlice
   },
 });
 

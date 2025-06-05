@@ -329,6 +329,7 @@ export interface UpdateApiCredentialRequest {
     [key: string]: any;
   };
   status?: 'active' | 'inactive';
+  webhook?: string;
 }
 
 export interface CreatePaymentRequest {
@@ -504,12 +505,48 @@ class RechargeService extends ServiceBase {
   }
 
   updateApiCredential = async (id: string, data: UpdateApiCredentialRequest): Promise<ApiCredential> => {
-    return this.put<ApiCredential>(`/api-credentials/${id}`, data);
+    return this.post<ApiCredential>(`/api-credentials/${id}`, data);
   }
 
   deleteApiCredential = async (id: string): Promise<void> => {
     return this.delete<void>(`/api-credentials/${id}`);
   }
-}
 
+  getApiKeyStripe = async ()=>{
+    const url = '/stripe/api-key'
+    return this.get(url)
+  }
+  createPaymentStripe = async (data: IPaymentStripeRequest) => {
+    return this.post('/stripe/create-payment', data)
+  }
+
+  getFaqContent = async ()=>{
+    const url = '/faq'
+    return this.get(url)
+  }
+  createFaqContent = async (data: CreateFaqContentRequest) => {
+    return this.post('/faq', data)
+  }
+  updateFaqContent = async (id: string, data: UpdateFaqContentRequest) => {
+    return this.post(`/faq/${id}`, data)
+  }
+  deleteFaqContent = async (id: string) => {
+    return this.delete(`/faq/${id}`)
+  }
+}
+export interface CreateFaqContentRequest{
+  question: string,
+  solve: string
+}
+export interface UpdateFaqContentRequest{
+  question?: string,
+  solve?: string
+}
+export interface IPaymentStripeRequest{
+  phoneNumber: string,
+  country: string,
+  operator: string,
+  amount: number,
+  currency: string
+}
 export const rechargeService = new RechargeService();

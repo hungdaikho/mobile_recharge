@@ -3,6 +3,7 @@
 import { updateChargeItem } from "@/redux/charge.slice";
 import { useDispatch } from "react-redux";
 import { useRouter } from 'next/navigation';
+import { normalizeText } from "@/utils/process";
 
 interface ChargingGroupProps {
   title: string;
@@ -11,6 +12,7 @@ interface ChargingGroupProps {
   borderColor: string
   backgroundColor: string
   apiCode: string
+  operatorId?:string
 }
 
 export default function ChargingGroup({
@@ -19,13 +21,14 @@ export default function ChargingGroup({
   items,
   borderColor,
   backgroundColor,
-  apiCode
+  apiCode,
+  operatorId
 }: ChargingGroupProps) {
   const dispatch = useDispatch();
   const router = useRouter();
   const onSelectOptions = (options: any) => {
-    dispatch(updateChargeItem({ index: 0, data: { type: title, amount: options.euro } }));
-    router.push(`/operators/${apiCode}`);
+    dispatch(updateChargeItem({ index: 0, data: { type: operatorId, amount: options.euro } }));
+    router.push(`/operators/${normalizeText(apiCode)}`);
   }
   return (
     <section className="overflow-hidden py-10 md:py-20 px-4">

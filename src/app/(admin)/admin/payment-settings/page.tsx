@@ -68,6 +68,7 @@ export default function PaymentSettingsPage() {
         metadata: {
           mode: values.mode,
           provider: values.provider,
+          webhook: values.webhook,
         },
       };
       await dispatch(createApiCredential(data)).unwrap();
@@ -91,6 +92,7 @@ export default function PaymentSettingsPage() {
           mode: values.mode,
           provider: values.provider,
         },
+        webhook: values.webhook,
       };
       await dispatch(updateApiCredential({ id: selectedCredential.id, data })).unwrap();
       message.success('API credential updated successfully');
@@ -236,6 +238,12 @@ export default function PaymentSettingsPage() {
           <Option value="sandbox">Sandbox</Option>
           <Option value="live">Live</Option>
         </Select>
+      </Form.Item>
+      <Form.Item
+        name="webhook"
+        label="Webhook"
+      >
+        <Input placeholder="Enter webhook (optional)" />
       </Form.Item>
     </Form>
   );

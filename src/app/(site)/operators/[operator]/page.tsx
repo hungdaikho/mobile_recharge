@@ -38,7 +38,8 @@ export default function OperatorPage() {
                 borderColor={operator.color ?? 'rgb(86, 0, 255)'}
                 backgroundColor={operator.color ?? 'rgb(86, 0, 255)'}
                 items={orangeChargingData}
-                apiCode={operator.apiCode}
+                apiCode={operator.name}
+                operatorId={operator.id}
             />
         </div>
     );
