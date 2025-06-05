@@ -149,14 +149,66 @@ export interface ActivityLogListResponse {
 // ==== OPERATOR ====
 export interface Operator {
   id: string;
+  operatorId: number;
   name: string;
-  logoUrl: string;
-  apiCode: string;
+  bundle: boolean;
+  data: boolean;
+  pin: boolean;
+  comboProduct: boolean;
+  supportsLocalAmounts: boolean;
+  supportsGeographicalRechargePlans: boolean;
+  denominationType: string;
+  senderCurrencyCode: string;
+  senderCurrencySymbol: string;
+  destinationCurrencyCode: string;
+  destinationCurrencySymbol: string;
+  commission: number;
+  internationalDiscount: number;
+  localDiscount: number;
+  mostPopularAmount?: number;
+  mostPopularLocalAmount?: number;
+  minAmount?: number;
+  maxAmount?: number;
+  localMinAmount?: number;
+  localMaxAmount?: number;
   countryCode: string;
-  description?: string;
+  country?: Country;
+  fxRate: number;
+  fxCurrencyCode: string;
+  logoUrls: string[];
+  fixedAmounts: number[];
+  fixedAmountsDescriptions: Record<string, any>;
+  localFixedAmounts: number[];
+  localFixedAmountsDescriptions: Record<string, any>;
+  suggestedAmounts: number[];
+  suggestedAmountsMap: Record<string, any>;
+  internationalFee: number;
+  localFee: number;
+  localPercentageFee: number;
+  internationalPercentageFee: number;
+  geographicalRechargePlans: Record<string, any>;
+  promotions: Record<string, any>;
+  status: string;
   color?: string;
+  simTypes: string[];
+  createdAt: string;
+  updatedAt: string;
+  active: boolean;
 }
-
+export interface Country {
+  code: string;
+  name: string;
+  continent: string;
+  currencyCode: string;
+  currencyName: string;
+  currencySymbol: string;
+  flag: string;
+  callingCodes: string[];
+  operators?: Operator[];
+  createdAt: string;
+  updatedAt: string;
+  active: boolean;
+}
 export interface OperatorListResponse {
   data: Operator[];
 }
@@ -180,13 +232,7 @@ export interface UpdateOperatorRequest {
 }
 
 // ==== COUNTRY ====
-export interface Country {
-  code: string;
-  name: string;
-  currency: string;
-  flagUrl: string;
-  operators?: Operator[];
-}
+
 
 export interface CountryListResponse {
   data: Country[];
@@ -195,8 +241,13 @@ export interface CountryListResponse {
 export interface CreateCountryRequest {
   code: string;
   name: string;
-  currency: string;
-  flagUrl: string;
+  continent: string;
+  currencyCode: string;
+  currencyName: string;
+  currencySymbol: string;
+  flag: string;
+  callingCodes: string[];
+  active: boolean;
 }
 
 export interface UpdateCountryRequest {
@@ -293,10 +344,13 @@ export interface CreatePaymentRequest {
 
 class RechargeService extends ServiceBase {
   constructor() {
-    super('https://ninhmet5.com');
-    // super('http://localhost:3000'); // Thay đổi URL theo API thực tế
+    // super('https://ninhmet5.com');
+    super('http://localhost:3000'); // Thay đổi URL theo API thực tế
   }
-
+  initDataFromReloadly = async ()=>{
+    const url = `/init-data/reloadly`
+    return this.post(url)
+  }
   // ==== AUTH ====
   login = async (data: LoginRequest): Promise<LoginResponse> => {
     return this.post<LoginResponse>('/auth/login', data);
@@ -368,17 +422,27 @@ class RechargeService extends ServiceBase {
   getOperators = async (): Promise<OperatorListResponse> => {
     return this.get<OperatorListResponse>('/operators');
   }
-
+  // Admin
+  getOperatorsAdmin = async (): Promise<OperatorListResponse> => {
+    return this.get<OperatorListResponse>('/operators/admin');
+  }
+  getOperatorsByCountry = async (countryCode: string): Promise<OperatorListResponse> => {
+    return this.get<OperatorListResponse>(`/operators/${countryCode}`);
+  }
   getOperatorDetail = async (id: string): Promise<Operator> => {
     return this.get<Operator>(`/operators/${id}`);
   }
-
-  createOperator = async (data: CreateOperatorRequest): Promise<Operator> => {
-    return this.post<Operator>('/operators', data);
+  getAllCountries = async (): Promise<CountryListResponse> => {
+    return this.get<CountryListResponse>('/countries/admin');
   }
-
-  updateOperator = async (id: string, data: UpdateOperatorRequest): Promise<Operator> => {
-    return this.put<Operator>(`/operators/${id}`, data);
+  getCountries = async (): Promise<CountryListResponse> => {
+    return this.get<CountryListResponse>('/countries');
+  }
+  updateCountryActive = async (code: string, active: boolean) => {
+    return this.post(`/countries/${code}/active`, { active });
+  }
+  updateOperator = async (id: any, active: boolean, color: string, description: string): Promise<Operator> => {
+    return this.post<Operator>(`/operators`, {operatorId: id, active, color, description});
   }
 
   deleteOperator = async (id: string): Promise<void> => {
@@ -386,10 +450,7 @@ class RechargeService extends ServiceBase {
   }
 
   // ==== COUNTRY ====
-  getCountries = async (): Promise<CountryListResponse> => {
-    return this.get<CountryListResponse>('/countries');
-  }
-
+ 
   getCountryDetail = async (code: string): Promise<Country> => {
     return this.get<Country>(`/countries/${code}`);
   }

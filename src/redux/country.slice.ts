@@ -26,15 +26,6 @@ export const deleteCountry = createAsyncThunk(
     return code;
   }
 );
-
-export const createOperator = createAsyncThunk(
-  'country/createOperator',
-  async (data: CreateOperatorRequest) => {
-    const response = await rechargeService.createOperator(data);
-    return response;
-  }
-);
-
 export const deleteOperator = createAsyncThunk(
   'country/deleteOperator',
   async (id: string) => {
@@ -43,14 +34,20 @@ export const deleteOperator = createAsyncThunk(
   }
 );
 
-export const updateOperator = createAsyncThunk(
-  'country/updateOperator',
-  async ({ id, data }: { id: string; data: UpdateOperatorRequest }) => {
-    const response = await rechargeService.updateOperator(id, data);
+export const updateCountry = createAsyncThunk(
+  'country/updateCountry',
+  async ({ code, active }: { code: string; active: boolean }) => {
+    const response = await rechargeService.updateCountryActive(code, active);
     return response;
   }
 );
-
+export const getAllCountries = createAsyncThunk(
+  'country/getAllCountries',
+  async () => {
+    const response = await rechargeService.getAllCountries();
+    return response;
+  }
+);
 interface CountryState {
   countries: Country[];
   loading: boolean;
@@ -74,7 +71,7 @@ const countrySlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchCountries.fulfilled, (state, action : any) => {
+      .addCase(fetchCountries.fulfilled, (state, action: any) => {
         state.loading = false;
         state.countries = action.payload;
       })
@@ -108,25 +105,6 @@ const countrySlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to delete country';
       })
-      // Create operator
-      .addCase(createOperator.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createOperator.fulfilled, (state, action) => {
-        state.loading = false;
-        const country = state.countries.find(c => c.code === action.payload.countryCode);
-        if (country) {
-          if (!country.operators) {
-            country.operators = [];
-          }
-          country.operators.push(action.payload);
-        }
-      })
-      .addCase(createOperator.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to create operator';
-      })
       // Delete operator
       .addCase(deleteOperator.pending, (state) => {
         state.loading = true;
@@ -143,24 +121,6 @@ const countrySlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to delete operator';
       })
-      // Update operator
-      .addCase(updateOperator.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateOperator.fulfilled, (state, action) => {
-        state.loading = false;
-        state.countries = state.countries.map(country => ({
-          ...country,
-          operators: country.operators?.map(op => 
-            op.id === action.payload.id ? action.payload : op
-          ) || []
-        }));
-      })
-      .addCase(updateOperator.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to update operator';
-      });
   },
 });
 

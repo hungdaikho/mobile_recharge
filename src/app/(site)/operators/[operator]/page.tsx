@@ -7,6 +7,7 @@ import { fetchOperators } from '@/redux/operator.slice';
 import HeroSection from '@/components/ui/hero';
 import ChargingGroup from '@/components/ui/charging_options_section/charging_group';
 import { orangeChargingData } from '@/constants/data.telecom';
+import { normalizeText } from '@/utils/process';
 
 export default function OperatorPage() {
     const params = useParams();
@@ -18,7 +19,7 @@ export default function OperatorPage() {
         dispatch(fetchOperators() as any);
     }, [dispatch]);
 
-    const operator = operators?.find((op: any) => op.apiCode === params.operator);
+    const operator = operators?.find((op: any) => normalizeText(op.name) === params.operator);
 
     if (loading) {
         return <div>Loading...</div>;

@@ -7,6 +7,7 @@ import { fetchOperators } from "@/redux/operator.slice";
 import PackagesOuter from "../package";
 import ChargingGroup from "@/components/ui/charging_options_section/charging_group";
 import { orangeChargingData } from "@/constants/data.telecom";
+import { normalizeText } from "@/utils/process";
 export default function PackagesPage() {
     const params = useParams();
     const dispatch = useDispatch();
@@ -17,7 +18,7 @@ export default function PackagesPage() {
         dispatch(fetchOperators() as any);
     }, [dispatch]);
 
-    const operator = operators?.find((op: any) => op.apiCode === params.operator);
+    const operator = operators?.find((op: any) => normalizeText(op.name) === params.operator);
 
     if (loading) {
         return <div>Loading...</div>;

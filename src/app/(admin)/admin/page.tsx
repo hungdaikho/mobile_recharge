@@ -5,6 +5,7 @@ import PerformanceGauge from '@/components/admin/PerformanceGauge';
 import RevenueChart from '@/components/admin/RevenueChart';
 import StatisticCard from '@/components/admin/StatisticCard';
 import { fetchInfo } from '@/redux/info.slice';
+import { rechargeService } from '@/services/recharge.service';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
@@ -21,6 +22,10 @@ export default function AdminDashboard() {
         };
         checkInfo();
     }, [dispatch, router]);
+    const initDataFromReloadly = async ()=>{
+        const response = await rechargeService.initDataFromReloadly()
+        console.log(response)
+    }
     return (
         <div>
             {/* Main content */}
@@ -53,7 +58,7 @@ export default function AdminDashboard() {
                 {/* Right column: more modules */}
                 <div className="flex flex-col gap-2 md:gap-4">
                     <ModuleCard title="Multi-Language" desc="English, Romanian..." color="cyan" />
-                    <ModuleCard title="Notifications" desc="After Successful Top-Ups or Transfers" color="purple" />
+                    <ModuleCard onclick={initDataFromReloadly} title="Init Data From Reloadly" desc="Get countries, operators, products, etc." color="purple" />
                     <ModuleCard title="FAQ & Content" desc="Editable by Admin" color="red" />
                     <ModuleCard title="VIP Numbers" desc="Showcase Module" color="green" />
                 </div>

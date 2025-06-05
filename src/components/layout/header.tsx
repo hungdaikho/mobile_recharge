@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchOperators } from '@/redux/operator.slice';
+import { normalizeText } from "@/utils/process";
 
 export default function Header() {
     const [showMenu, setShowMenu] = useState(false)
@@ -14,11 +15,10 @@ export default function Header() {
     const dispatch = useDispatch();
     const operators = useSelector((state: any) => state.operator.operators);
     const loadingOperators = useSelector((state: any) => state.operator.loading);
-
     // Function to determine background color based on path
     const getBackgroundColor = () => {
         const operatorName = pathname.split('/').pop();
-        const operator = operators.find((op: any) => op.apiCode === operatorName);
+        const operator = operators.find((op: any) => normalizeText(op.name) === operatorName);
         return operator?.color || "rgb(86, 0, 255)"; // Default color if not found
     };
 
@@ -73,7 +73,7 @@ export default function Header() {
                                                     <li
                                                         key={op.id}
                                                         className="hover:bg-gray-100 px-3 py-2 rounded cursor-pointer"
-                                                        onClick={() => router.push(`/operators/${op.apiCode}`)}
+                                                        onClick={() => router.push(`/operators/${normalizeText(op.name)}`)}
                                                     >
                                                         {op.name}
                                                     </li>
@@ -99,7 +99,7 @@ export default function Header() {
                                                     <li
                                                         key={op.id}
                                                         className="hover:bg-gray-100 px-3 py-2 rounded cursor-pointer"
-                                                        onClick={() => router.push(`/packages/${op.apiCode}`)}
+                                                        onClick={() => router.push(`/packages/${normalizeText(op.name)}`)}
                                                     >
                                                         {op.name}
                                                     </li>

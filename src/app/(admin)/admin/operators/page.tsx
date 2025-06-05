@@ -37,18 +37,7 @@ export default function OperatorsPage() {
   }, []);
 
   const handleSubmit = async (values: CreateOperatorRequest) => {
-    try {
-      setLoading(true);
-      await rechargeService.createOperator(values);
-      message.success('Operator added successfully');
-      setIsModalVisible(false);
-      form.resetFields();
-      fetchOperators();
-    } catch (error) {
-      message.error('Failed to add operator');
-    } finally {
-      setLoading(false);
-    }
+
   };
 
   const columns = [

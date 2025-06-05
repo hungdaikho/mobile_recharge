@@ -11,7 +11,27 @@ export const fetchOperators = createAsyncThunk(
 
   }
 );
-
+export const getAllOperators = createAsyncThunk(
+  'operator/getAllOperators',
+  async () => {
+    const res: OperatorListResponse = await rechargeService.getOperatorsAdmin();
+    return res;
+  }
+);
+export const getOperatorsByCountry = createAsyncThunk(
+  'operator/getOperatorsByCountry',
+  async (countryCode: string) => {
+    const res: OperatorListResponse = await rechargeService.getOperatorsByCountry(countryCode);
+    return res;
+  }
+);
+export const updateOperator = createAsyncThunk(
+  'operator/updateOperator',
+  async ({id,active,color,description}: {id: string, active: boolean, color: string, description: string}) => {
+    const res: Operator = await rechargeService.updateOperator(id, active, color, description);
+    return res;
+  }
+);
 export interface OperatorState {
   operators: Operator[];
   loading: boolean;
