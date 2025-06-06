@@ -26,7 +26,7 @@ export default function ChargingOptionsSection() {
     } else {
       if (operator.countryCode === 'RO') {
         fixedAmounts.forEach((amount: any, index: number) => {
-          items.push({ euro: amount, lei: `${amount * 5.04} RON`, amountPay: fixedAmounts[index] })
+          items.push({ euro: localFixedAmounts[index], lei: `${amount * 5.04} RON`, amountPay: fixedAmounts[index] })
         })
       } else {
         fixedAmounts.forEach((amount: any, index: number) => {
