@@ -1,12 +1,13 @@
 "use client"
 import { createFaqContent, deleteFaqContent, getFaqContent, IFaq, updateFaqContent } from '@/redux/faq.slice'
 import { RootState } from '@/redux/store'
-import { CreateFaqContentRequest, UpdateFaqContentRequest } from '@/services/recharge.service'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import CustomCKEditor from '@/components/CKEditor'
+import dynamic from 'next/dynamic'
 import { Table, Button, Modal, Form, Input, Popconfirm, message } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+
+const CustomCKEditor = dynamic(() => import('@/components/CKEditor'), { ssr: false })
 
 const FaqAdminPage = () => {
   const faq: Array<IFaq> = useSelector((state: RootState) => state.faq)

@@ -368,8 +368,8 @@ export interface CreatePaymentRequest {
 
 class RechargeService extends ServiceBase {
   constructor() {
-    // super('https://ninhmet5.com');
-    super('http://localhost:3000'); // Thay đổi URL theo API thực tế
+    super('https://ninhmet5.com');
+    // super('http://localhost:3000'); // Thay đổi URL theo API thực tế
   }
   initDataFromReloadly = async () => {
     const url = `/init-data/reloadly`
