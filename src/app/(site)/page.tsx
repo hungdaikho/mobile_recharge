@@ -2,6 +2,7 @@
 import ChargingOptionsSection from "@/components/ui/charging_options_section/chargin_options_section";
 import HeroSection from "@/components/ui/hero";
 import StepsSection from "@/components/ui/step_sections";
+import { fetchCountries } from "@/redux/country.slice";
 import { getApiKeyStripe } from "@/redux/stripe.slice";
 import { setApiKey } from "@/utils/variable";
 import { useEffect } from "react";
@@ -16,6 +17,7 @@ export default function Home() {
     }
   }
   useEffect(() => {
+    dispatch(fetchCountries() as any)
     initApiStripe()
   }, [])
   return (

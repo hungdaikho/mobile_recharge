@@ -3,15 +3,16 @@ import { createSlice } from "@reduxjs/toolkit";
 export interface IChargeItem {
     phone: string | number;
     amount: string | number;
+    amountPay: number;
 }
 
 export interface ICharge {
-    type: string;
+    type: number;
     charges: IChargeItem[];
 }
 
 const initialState: ICharge = {
-    type: '',
+    type: 0,
     charges: []
 }
 
@@ -35,7 +36,7 @@ const chargeSlice = createSlice({
                     ...data
                 };
             } else {
-                state.charges[index] = { phone: '', amount: '', ...data };
+                state.charges[index] = { phone: '', amount: '', amountPay: 0, ...data };
             }
             return state;
         },

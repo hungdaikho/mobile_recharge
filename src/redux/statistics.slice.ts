@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { rechargeService } from '@/services/recharge.service';
-import type { StatisticsParams, StatisticsSummaryResponse, OperatorStatisticsResponse } from '@/services/recharge.service';
+import type { StatisticsParams, StatisticsSummaryResponse, OperatorStatisticsResponse, StatisticRequest } from '@/services/recharge.service';
 
 interface StatisticsState {
   summary: StatisticsSummaryResponse | null;
@@ -31,7 +31,13 @@ export const fetchOperatorStatistics = createAsyncThunk(
     return response;
   }
 );
-
+export const getStatistics = createAsyncThunk(
+  'statistics/getStatistics',
+  async (params: StatisticRequest) => {
+    const response = await rechargeService.getStatistics(params);
+    return response;
+  }
+);
 const statisticsSlice = createSlice({
   name: 'statistics',
   initialState,

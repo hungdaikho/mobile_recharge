@@ -5,14 +5,31 @@ import PerformanceGauge from '@/components/admin/PerformanceGauge';
 import RevenueChart from '@/components/admin/RevenueChart';
 import StatisticCard from '@/components/admin/StatisticCard';
 import { fetchInfo } from '@/redux/info.slice';
-import { rechargeService } from '@/services/recharge.service';
+import { getStatistics } from '@/redux/statistics.slice';
+import { rechargeService, StatisticRequest, StatisticResponse } from '@/services/recharge.service';
+import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 export default function AdminDashboard() {
     const dispatch = useDispatch();
     const router = useRouter();
+    const [statistics, setStatistics] = useState<StatisticResponse[]>([])
+    const [filters, setFilters] = useState<StatisticRequest>({
+        fromDate: dayjs().format("YYYY-MM-DD"),
+        toDate: dayjs().format("YYYY-MM-DD"),
+    })
+
+    // Lấy dữ liệu thống kê
+    const initStatistics = async () => {
+        const res = await dispatch(getStatistics(filters) as any)
+        setStatistics(res.payload || [])
+    }
+
+    useEffect(() => {
+        initStatistics()
+    }, [filters])
     useEffect(() => {
         const checkInfo = async () => {
             const res = await dispatch(fetchInfo() as any);
@@ -22,19 +39,25 @@ export default function AdminDashboard() {
         };
         checkInfo();
     }, [dispatch, router]);
-    const initDataFromReloadly = async ()=>{
+    const initDataFromReloadly = async () => {
         const response = await rechargeService.initDataFromReloadly()
         console.log(response)
     }
+
+    // Tính toán các số liệu dashboard
+    const totalRecharges = statistics.filter(s => s.status === 'SUCCESS-TOPUP').length;
+    const creditTransfers = totalRecharges;
+    const totalTransactions = statistics.length;
+
     return (
         <div>
             {/* Main content */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
                 {/* Top statistics */}
                 <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-2 md:mb-4">
-                    <StatisticCard title="Total Recharges" value="18,300" change="3.2%" positive />
-                    <StatisticCard title="Credit Transfers" value="7,250" change="4.8%" positive={false} />
-                    <StatisticCard title="Users" value="5,840" change="4.8%" positive={false} />
+                    <StatisticCard title="Total Recharges" value={totalRecharges.toLocaleString()} change="" positive />
+                    <StatisticCard title="Credit Transfers" value={creditTransfers.toLocaleString()} change="" positive={false} />
+                    <StatisticCard title="Transactions" value={totalTransactions.toLocaleString()} change="" positive={false} />
                     <PerformanceGauge value={70} />
                 </div>
                 {/* Left column: modules */}
@@ -50,7 +73,7 @@ export default function AdminDashboard() {
                         <h3 className="font-semibold mb-1 md:mb-2 text-base md:text-lg">Top-Up Logs</h3>
                         {/* Placeholder for logs chart */}
                         <div className="h-16 md:h-24 bg-gray-100 rounded mb-1 md:mb-2" />
-                        <div className="text-xl md:text-2xl font-bold">$25,842</div>
+                        {/* <div className="text-xl md:text-2xl font-bold">$25,842</div> */}
                     </div>
                     <RevenueChart />
                     <ActivityLog />
@@ -59,7 +82,7 @@ export default function AdminDashboard() {
                 <div className="flex flex-col gap-2 md:gap-4">
                     <ModuleCard title="Multi-Language" desc="English, Romanian..." color="cyan" />
                     <ModuleCard onclick={initDataFromReloadly} title="Init Data From Reloadly" desc="Get countries, operators, products, etc." color="purple" />
-                    <ModuleCard onclick={()=>router.push("/admin/faq-content")} title="FAQ & Content" desc="Editable by Admin" color="red" />
+                    <ModuleCard onclick={() => router.push("/admin/faq-content")} title="FAQ & Content" desc="Editable by Admin" color="red" />
                     <ModuleCard title="VIP Numbers" desc="Showcase Module" color="green" />
                 </div>
             </div>

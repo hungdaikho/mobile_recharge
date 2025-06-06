@@ -147,6 +147,29 @@ export interface ActivityLogListResponse {
 }
 
 // ==== OPERATOR ====
+export interface StatisticRequest {
+
+  fromDate: string,      // optional, string
+  toDate: string,        // optional, string
+  country?: string,               // optional, string
+  operator?: string,         // optional, string
+  status?: string            // optional, string
+
+}
+export interface StatisticResponse {
+  id: string;
+  phoneNumber: string;
+  country: string;
+  operator: string | number; // Có thể là ID hoặc UUID
+  amount: number | string;
+  currency: string; // e.g., "EUR", "VND"
+  status: 'PENDING' | 'SUCCESS-TOPUP' | 'SUCCESS-FAILED' | 'FAILED' | 'SUCCESS'; // Bạn có thể thêm các giá trị khác nếu có
+  type: 'TOPUP' | string; // Có thể thêm các loại khác nếu dùng
+  paymentMethod: 'STRIPE' | string;
+  createdAt: string; // ISO timestamp: 2025-06-06T13:19:06.052Z
+  updatedAt: string; // ISO timestamp
+  metadata: any | null; // Vì đang là null, bạn có thể định nghĩa rõ nếu biết kiểu
+}
 export interface Operator {
   id: string;
   operatorId: number;
@@ -348,7 +371,7 @@ class RechargeService extends ServiceBase {
     // super('https://ninhmet5.com');
     super('http://localhost:3000'); // Thay đổi URL theo API thực tế
   }
-  initDataFromReloadly = async ()=>{
+  initDataFromReloadly = async () => {
     const url = `/init-data/reloadly`
     return this.post(url)
   }
@@ -443,7 +466,7 @@ class RechargeService extends ServiceBase {
     return this.post(`/countries/${code}/active`, { active });
   }
   updateOperator = async (id: any, active: boolean, color: string, description: string): Promise<Operator> => {
-    return this.post<Operator>(`/operators`, {operatorId: id, active, color, description});
+    return this.post<Operator>(`/operators`, { operatorId: id, active, color, description });
   }
 
   deleteOperator = async (id: string): Promise<void> => {
@@ -451,7 +474,7 @@ class RechargeService extends ServiceBase {
   }
 
   // ==== COUNTRY ====
- 
+
   getCountryDetail = async (code: string): Promise<Country> => {
     return this.get<Country>(`/countries/${code}`);
   }
@@ -512,7 +535,7 @@ class RechargeService extends ServiceBase {
     return this.delete<void>(`/api-credentials/${id}`);
   }
 
-  getApiKeyStripe = async ()=>{
+  getApiKeyStripe = async () => {
     const url = '/stripe/api-key'
     return this.get(url)
   }
@@ -520,7 +543,7 @@ class RechargeService extends ServiceBase {
     return this.post('/stripe/create-payment', data)
   }
 
-  getFaqContent = async ()=>{
+  getFaqContent = async () => {
     const url = '/faq'
     return this.get(url)
   }
@@ -531,22 +554,30 @@ class RechargeService extends ServiceBase {
     return this.post(`/faq/update/${id}`, data)
   }
   deleteFaqContent = async (id: string) => {
-    return this.post(`/faq/delete`,{id})
+    return this.post(`/faq/delete`, { id })
+  }
+
+  getStatistics = async (data: StatisticRequest) => {
+    const url = `/statistics`
+    return this.post(url, data)
   }
 }
-export interface CreateFaqContentRequest{
+
+
+export interface CreateFaqContentRequest {
   question: string,
   solve: string
 }
-export interface UpdateFaqContentRequest{
+export interface UpdateFaqContentRequest {
   question?: string,
   solve?: string
 }
-export interface IPaymentStripeRequest{
+export interface IPaymentStripeRequest {
   phoneNumber: string | number,
   country: string,
-  operator: string,
+  operator: string | number,
   amount: string,
   currency: string
 }
+
 export const rechargeService = new RechargeService();

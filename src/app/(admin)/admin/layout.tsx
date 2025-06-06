@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Layout, Menu, theme } from 'antd';
 import {
   DashboardOutlined,
@@ -9,6 +9,8 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 import { usePathname, useRouter } from "next/navigation";
+import { fetchInfo } from "@/redux/info.slice";
+import { useDispatch } from "react-redux";
 
 const { Header, Sider, Content } = Layout;
 
@@ -20,6 +22,7 @@ export default function AdminLayout({
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useDispatch();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -55,7 +58,16 @@ export default function AdminLayout({
     // Implement logout logic here
     router.push('/login');
   };
+  useEffect(() => {
+    const checkInfo = async () => {
+      const res = await dispatch(fetchInfo() as any)
 
+      if (res.error) {
+        router.replace("/login");
+      }
+    };
+    checkInfo();
+  }, [dispatch, router]);
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider

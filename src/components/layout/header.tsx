@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchOperators } from '@/redux/operator.slice';
-import { normalizeText } from "@/utils/process";
+import { handleRomaniaTile, normalizeText } from "@/utils/process";
 
 export default function Header() {
     const [showMenu, setShowMenu] = useState(false)
@@ -18,14 +18,14 @@ export default function Header() {
     const [activeMenuIndex, setActiveMenuIndex] = useState<number | null>(null);
     // Function to determine background color based on path
     const getBackgroundColor = () => {
+        if (pathname.includes('/packages')) {
+            return "rgb(86, 0, 255)"; // Default color for packages
+        }
         const operatorName = pathname.split('/').pop();
         const operator = operators.find((op: any) => normalizeText(op.name) === operatorName);
-        return operator?.color || "rgb(86, 0, 255)"; // Default color if not found
+        const colorConfig = renderColor(operator?.name);
+        return colorConfig ? colorConfig.color : operator?.color || "rgb(86, 0, 255)"; // Default color if not found
     };
-
-    const isOperators = pathname.startsWith('/operators');
-    const isPackages = pathname.startsWith('/packages');
-
     useEffect(() => {
         dispatch(fetchOperators() as any);
 
@@ -40,11 +40,28 @@ export default function Header() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    // Prefetch routes on hover
-    const prefetchRoute = (path: string) => {
-        router.prefetch(path);
-    };
+    const renderColor = (operatorName: String) => {
+        let color = 'rgb(86, 0, 255)'
+        let bgColor = 'rgb(86, 0, 255)' 
+        let borderColor = 'rgb(86, 0, 255)'
+        switch (operatorName) {
+          case 'Telekom Romania Mobile':
+            color = 'rgb(226, 0, 116)'
+            bgColor = 'rgb(226, 0, 116)'
+            borderColor = 'rgb(189, 0, 97)'
+            return { color, bgColor, borderColor }
+          case 'Vodafone Romania':
+            color = 'rgb(226, 31, 29)'
+            bgColor = 'rgb(226, 31, 29)'
+            borderColor = 'rgb(187, 24, 23)'
+            return { color, bgColor, borderColor }
+          case 'Orange Romania':
+            color = 'rgb(255, 121, 0)'
+            bgColor = 'rgb(255, 121, 0)'
+            borderColor = 'rgb(222, 105, 0)'
+            return { color, bgColor, borderColor }
+        }
+      }
     return (
         <header
             className="md:fixed w-full top-0 py-4 z-10"
@@ -75,7 +92,7 @@ export default function Header() {
                                                         className="hover:bg-gray-100 px-3 py-2 rounded cursor-pointer"
                                                         onClick={() => router.push(`/operators/${normalizeText(op.name)}`)}
                                                     >
-                                                        {op.name}
+                                                        {handleRomaniaTile(op.name)}
                                                     </li>
                                                 ))
                                             ) : null}
@@ -101,7 +118,7 @@ export default function Header() {
                                                         className="hover:bg-gray-100 px-3 py-2 rounded cursor-pointer"
                                                         onClick={() => router.push(`/packages/${normalizeText(op.name)}`)}
                                                     >
-                                                        {op.name}
+                                                        {handleRomaniaTile(op.name)}
                                                     </li>
                                                 ))
                                             ) : null}
@@ -269,7 +286,7 @@ export default function Header() {
                                                     onTouchStart={() => setActiveMenuIndex(100 + idx)}
                                                     onMouseDown={() => setActiveMenuIndex(100 + idx)}
                                                 >
-                                                    <p className={`flex gap-2 items-center py-2 px-4 rounded-2xl hover:bg-[rgb(59,130,246)] active:bg-[rgb(59,130,246)] ${activeMenuIndex === 100 + idx ? 'bg-[rgb(59,130,246)]' : ''}`}>{op.name}</p>
+                                                    <p className={`flex gap-2 items-center py-2 px-4 rounded-2xl hover:bg-[rgb(59,130,246)] active:bg-[rgb(59,130,246)] ${activeMenuIndex === 100 + idx ? 'bg-[rgb(59,130,246)]' : ''}`}>{handleRomaniaTile(op.name)}</p>
                                                 </Link>
                                             </li>
                                         ))
@@ -304,7 +321,7 @@ export default function Header() {
                                                     onTouchStart={() => setActiveMenuIndex(200 + idx)}
                                                     onMouseDown={() => setActiveMenuIndex(200 + idx)}
                                                 >
-                                                    <p className={`flex gap-2 items-center py-2 px-4 rounded-2xl hover:bg-[rgb(59,130,246)] active:bg-[rgb(59,130,246)] ${activeMenuIndex === 200 + idx ? 'bg-[rgb(59,130,246)]' : ''}`}>{op.name}</p>
+                                                    <p className={`flex gap-2 items-center py-2 px-4 rounded-2xl hover:bg-[rgb(59,130,246)] active:bg-[rgb(59,130,246)] ${activeMenuIndex === 200 + idx ? 'bg-[rgb(59,130,246)]' : ''}`}>{handleRomaniaTile(op.name)}</p>
                                                 </Link>
                                             </li>
                                         ))

@@ -2,12 +2,14 @@
 import { ICharge } from "@/redux/charge.slice";
 import { RootState } from "@/redux/store";
 import { createPaymentStripe } from "@/redux/stripe.slice";
-import { IPaymentStripeRequest } from "@/services/recharge.service";
+import { Country, IPaymentStripeRequest } from "@/services/recharge.service";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import PaymentForm from "../payment-form/payment-form";
+import { handleRomaniaTile } from "@/utils/process";
+import { fetchCountries } from "@/redux/country.slice";
 export interface IPaymentResponse {
   clientSecret: string,
   paymentIntentId: string,
@@ -21,6 +23,7 @@ const CheckoutSection: React.FC = () => {
   const router = useRouter();
   const charge: ICharge = useSelector((state: RootState) => state.charge);
   const operators = useSelector((state: RootState) => state.operator.operators);
+  const country = useSelector((state: RootState) => state.country.countries);
   const [selectedOperator, setSelectedOperator] = useState(charge.type || "");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,29 +33,41 @@ const CheckoutSection: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<IPaymentStatus | null>(null)
   const [transactionId, setTransactionId] = useState<string | null>(null)
   useEffect(() => {
+    dispatch(fetchCountries() as any)
     if (!charge.charges[0]?.phone || !charge.charges[0]?.amount) {
       router.push('/');
     }
   }, [charge.charges, router]);
 
   const operatorActive: any = operators.find(
-    (op) => op.id === (charge.type || selectedOperator)
+    (op) => op.operatorId === (Number(charge.type) || Number(selectedOperator))
   );
+  const activeCountry: Country | any = country.find((c) => c.code === operatorActive.countryCode);
   const continueToPayment = async () => {
+    const rawPhone: any = charge.charges[0]?.phone || "";
+    const callingCode = activeCountry?.callingCodes[0] || "";
+    // Làm sạch số điện thoại: loại bỏ ký tự không phải số, bỏ số 0 ở đầu nếu có
+    const cleanPhone = rawPhone.replace(/\D/g, '').replace(/^0+/, '');
+
+    // Nếu đã có dấu + ở đầu, giữ nguyên. Nếu không, thêm + + callingCode
+    const phoneWithCallingCode = rawPhone.startsWith('+')
+      ? rawPhone
+      : `${callingCode}${cleanPhone}`;
+    // Tạo request gửi lên server
     const request: IPaymentStripeRequest = {
-      phoneNumber: charge.charges[0]?.phone || "",
+      phoneNumber: phoneWithCallingCode,
       country: operatorActive.countryCode,
-      operator: operatorActive.id,
-      amount: String(charge.charges[0]?.amount) || '0',
-      currency: "EUR"
-    }
+      operator: operatorActive.operatorId,
+      amount: String(charge.charges[0]?.amountPay || 0) || '0',
+      currency: operatorActive.senderCurrencyCode
+    };
     const response = await dispatch(createPaymentStripe(request) as any)
     setPaymentResponse(response.payload)
     setTransactionId(response.payload.transactionId)
   }
   // Tính toán tiền RON
   const euro = Number(charge.charges[0]?.amount || 0);
-  const rate = 5; // 1 Euro = 5 RON
+  const rate = 5.04; // 1 Euro = 5 RON
   const subtotal = euro * rate;
   const vat = subtotal * 0.19;
   const total = subtotal + vat;
@@ -74,10 +89,10 @@ const CheckoutSection: React.FC = () => {
           >
             <div className="text-green-600 text-4xl">✔</div>
             <div className="text-xl font-semibold text-green-700">
-              Thanh toán thành công!
+              Payment successful!
             </div>
             <div className="text-gray-700">
-              Mã tra cứu: <span className="font-mono text-black cursor-pointer" onClick={() => {
+              Reference code: <span className="font-mono text-black cursor-pointer" onClick={() => {
                 navigator.clipboard.writeText(transactionId || "")
               }}>{transactionId}</span>
             </div>
@@ -115,8 +130,8 @@ const CheckoutSection: React.FC = () => {
                     >
                       <option value="">Select an operator</option>
                       {operators.map((op) => (
-                        <option key={op.id} value={op.id}>
-                          {op.name}
+                        <option key={op.operatorId} value={op.operatorId}>
+                          {handleRomaniaTile(op.name)}
                         </option>
                       ))}
                     </select>

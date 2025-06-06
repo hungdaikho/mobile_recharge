@@ -3,7 +3,7 @@
 import { updateChargeItem } from "@/redux/charge.slice";
 import { useDispatch } from "react-redux";
 import { useRouter } from 'next/navigation';
-import { normalizeText } from "@/utils/process";
+import { handleRomaniaTile, normalizeText } from "@/utils/process";
 
 interface ChargingGroupProps {
   title: string;
@@ -12,7 +12,8 @@ interface ChargingGroupProps {
   borderColor: string
   backgroundColor: string
   apiCode: string
-  operatorId?:string
+  operatorId?:number
+  fxCurrencyCode: string
 }
 
 export default function ChargingGroup({
@@ -22,12 +23,13 @@ export default function ChargingGroup({
   borderColor,
   backgroundColor,
   apiCode,
-  operatorId
+  operatorId,
+  fxCurrencyCode
 }: ChargingGroupProps) {
   const dispatch = useDispatch();
   const router = useRouter();
   const onSelectOptions = (options: any) => {
-    dispatch(updateChargeItem({ index: 0, data: { type: operatorId, amount: options.euro } }));
+    dispatch(updateChargeItem({ index: 0, data: { type: operatorId, amount: options.euro, amountPay: options.amountPay } }));
     router.push(`/operators/${normalizeText(apiCode)}`);
   }
   return (
@@ -37,7 +39,7 @@ export default function ChargingGroup({
           className="text-2xl sm:text-5xl font-bold text-center mb-8"
           style={{ color }}
         >
-          {title}
+          {handleRomaniaTile(title)}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {items.map((item, idx) => (
@@ -63,7 +65,7 @@ export default function ChargingGroup({
                 >
                   <div className="group-hover:text-white transition-colors duration-300">
                     <div className="text-3xl md:text-4xl font-bold mb-1">
-                      {item.euro} Euro
+                      {item.euro} {fxCurrencyCode}
                     </div>
                     <div className="text-2xl opacity-90">{item.lei}</div>
                   </div>

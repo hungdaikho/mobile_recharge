@@ -5,12 +5,48 @@ import Image from "next/image";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
+import { handleRomaniaTile } from "@/utils/process";
+import { Operator } from "@/services/recharge.service";
 
 export default function HeroSection({ bgColor }: { bgColor?: string }) {
     const charge: ICharge = useSelector((state: RootState) => state.charge);
+    const operators = useSelector((state: RootState) => state.operator.operators);
     const dispatch = useDispatch();
-    const [accept,setAccept] = useState(false)
+    const [accept, setAccept] = useState(false);
     const router = useRouter();
+    const activeOperator = operators.find((operator: any) => operator.operatorId === Number(charge.type));
+    const renderAmount = (operator: Operator | any) => {
+        if (!operator) return [];
+        const fixedAmounts = operator.fixedAmounts
+        const localFixedAmounts = operator.localFixedAmounts
+        const senderCurrencyCode = operator.senderCurrencyCode
+        const fxRate = operator.fxRate
+        const items: Array<{ euro: number | string; lei: string; amountPay: number }> = []
+        if (fxRate === 1) {
+            if (operator.countryCode === 'RO') {
+                fixedAmounts.forEach((amount: any) => {
+                    items.push({ euro: amount, lei: `${amount * 5.04} RON`, amountPay: amount })
+                })
+            } else {
+                fixedAmounts.forEach((amount: any) => {
+                    items.push({ euro: amount, lei: '', amountPay: amount })
+                })
+            }
+            return items
+        } else {
+            if (operator.countryCode === 'RO') {
+                localFixedAmounts.forEach((amount: any, index: number) => {
+                    items.push({ euro: amount, lei: `${amount * 5.04} RON`, amountPay: fixedAmounts[index] })
+                })
+            } else {
+                fixedAmounts.forEach((amount: any, index: number) => {
+                    items.push({ euro: localFixedAmounts[index], lei: `${amount} ${senderCurrencyCode}`, amountPay: amount })
+                })
+            }
+            return items
+        }
+    };
+    const items = renderAmount(activeOperator);
     return (
         <div
             className="w-full pt-10"
@@ -192,7 +228,34 @@ export default function HeroSection({ bgColor }: { bgColor?: string }) {
                                                         />
                                                     </div>
                                                 </div>
+                                                <div>
+                                                    <label
+                                                        htmlFor="operator"
+                                                        className="block text-2xl font-bold text-gray-900 mb-2"
+                                                    >
+                                                        Select Operator
+                                                    </label>
+                                                    <select
+                                                        id="operator"
+                                                        value={charge.type}
+                                                        onChange={(e) => {
+                                                            dispatch(
+                                                                updateChargeItem({
+                                                                    index: 0,
+                                                                    data: { type: e.target.value }
+                                                                })
+                                                            );
+                                                        }}
+                                                        className="w-full border border-gray-300 rounded-lg py-1.5 px-4 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
 
+                                                    >
+                                                        {
+                                                            operators.map((operator: any) => (
+                                                                <option key={operator.operatorId} value={operator.operatorId}>{handleRomaniaTile(operator.name)}</option>
+                                                            ))
+                                                        }
+                                                    </select>
+                                                </div>
                                                 <div>
                                                     <label
                                                         htmlFor="amount"
@@ -200,21 +263,26 @@ export default function HeroSection({ bgColor }: { bgColor?: string }) {
                                                     >
                                                         Put your amount
                                                     </label>
-                                                    <input
-                                                        value={charge.charges[0]?.amount ?? ""}
+                                                    <select
+                                                        value={charge.charges[0]?.amountPay ?? ""}
                                                         onChange={(e) => {
                                                             dispatch(
                                                                 updateChargeItem({
                                                                     index: 0,
-                                                                    data: { amount: e.target.value },
+                                                                    data: { amount: e.target.value, amountPay: Number(e.target.value) },
                                                                 })
                                                             );
                                                         }}
                                                         id="amount"
-                                                        type="number"
-                                                        placeholder="Please select amount"
-                                                        className="w-full border border-gray-300 rounded-lg py-2 px-4 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    />
+                                                        className="w-full border border-gray-300 rounded-lg py-1.5 px-4 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
+                                                    >
+                                                        <option value="">Please select amount</option>
+                                                        {items.map((item, idx) => (
+                                                            <option key={idx} value={item.amountPay}>
+                                                                {item.euro} EUR{item.lei ? ` (${item.lei})` : ""}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                 </div>
 
                                                 <div className="flex items-center gap-2">
@@ -245,18 +313,19 @@ export default function HeroSection({ bgColor }: { bgColor?: string }) {
                                                         charge.charges[0]?.amount === "" ||
                                                         !accept
                                                     }
-                                                    className={`cursor-pointer w-full text-white text-lg font-medium py-3 px-6 rounded-lg transition-colors ${
-                                                        charge.charges[0]?.phone !== "" &&
+                                                    className={`cursor-pointer w-full text-white text-lg font-medium py-3 px-6 rounded-lg transition-colors ${charge.charges[0]?.phone !== "" &&
                                                         charge.charges[0]?.amount !== "" &&
                                                         accept
-                                                            ? ""
-                                                            : "bg-gray-400"
-                                                    }`}
+                                                        ? ""
+                                                        : "bg-gray-400"
+                                                        }`}
                                                     style={
                                                         charge.charges[0]?.phone !== "" &&
-                                                        charge.charges[0]?.amount !== "" &&
-                                                        accept
-                                                            ? { backgroundColor: bgColor ?? "rgb(86, 0, 255)" }
+                                                            charge.charges[0]?.amount !== "" &&
+                                                            accept
+                                                            ? {
+                                                                backgroundColor: bgColor ?? "rgb(86, 0, 255)",
+                                                            }
                                                             : {}
                                                     }
                                                     onClick={() => router.push("/payment/checkout")}
@@ -274,29 +343,9 @@ export default function HeroSection({ bgColor }: { bgColor?: string }) {
                                                     </h1>
                                                 </button>
                                             </form>
-                                            {(charge.charges[0]?.phone ||
-                                                charge.charges[0]?.amount) ? (
-                                                <div className="px-5 pb-6 md:px-8 space-y-1">
-                                                    <p className="text-sm text-gray-500">
-                                                        Telephone operator: {charge.type ?? 'orange'}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        Number you are recharging:{" "}
-                                                        {charge.charges[0]?.phone}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        Credit value: {charge.charges[0]?.amount} Euros
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        Active period: 30 days
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        Grace period: 300 days
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        Total payment:{" "}
-                                                    </p>
-                                                </div>
+                                            {charge.charges[0]?.phone || charge.charges[0]?.amount ? (
+                                                // Preview info hidden (Telephone operator, Number you are recharging, Credit value, Active period, Grace period, Total payment)
+                                                null
                                             ) : (
                                                 <div className="flex px-5 pb-6 space-y-1 gap-1">
                                                     <svg

@@ -23,8 +23,8 @@ const CheckoutForm = ({ resetPaymentForm }: { resetPaymentForm: (status: IPaymen
 
         const { error, paymentIntent } = await stripe.confirmPayment({
             elements,
-            confirmParams: {}, // ⛔️ Không có return_url
-            redirect: 'if_required', // ⬅️ QUAN TRỌNG: chỉ redirect nếu Stripe bắt buộc
+            confirmParams: {}, // ⛔️ No return_url
+            redirect: 'if_required', // ⬅️ IMPORTANT: only redirect if Stripe requires
         });
 
         if (error) {
@@ -32,7 +32,7 @@ const CheckoutForm = ({ resetPaymentForm }: { resetPaymentForm: (status: IPaymen
         } else if (paymentIntent && paymentIntent.status === 'succeeded') {
             resetPaymentForm({
                 status: 1,
-                message: `Thanh toán thành công ${paymentIntent.amount} ${paymentIntent.currency} - mã tra cứu: ${paymentIntent.id}`,
+                message: `Payment successful ${paymentIntent.amount} ${paymentIntent.currency} - reference code: ${paymentIntent.id}`,
             })
         }
 
@@ -49,7 +49,7 @@ const CheckoutForm = ({ resetPaymentForm }: { resetPaymentForm: (status: IPaymen
                     ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                     }`}
             >
-                {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
+                {isLoading ? 'Processing...' : 'Pay'}
             </button>
             {message && <div className="text-red-600">{message}</div>}
         </form>
@@ -60,7 +60,7 @@ const PaymentForm = ({ paymentResponse, resetPaymentForm }: Props) => {
     const { clientSecret } = paymentResponse;
     const stripePromise = loadStripe(getApiKey() || '');
 
-    if (!clientSecret) return <div>Không tìm thấy thông tin thanh toán.</div>;
+    if (!clientSecret) return <div>Payment information not found.</div>;
 
     return (
         <div

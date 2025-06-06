@@ -48,7 +48,7 @@ const RechargeForm: React.FC = () => {
     const request: IPaymentStripeRequest = {
       phoneNumber: charge.charges.map(item => item.phone).join(';'),
       country: operatorActive.countryCode,
-      operator: operatorActive.id,
+      operator: operatorActive.operatorId,
       amount: charge.charges.map(item => item.amount).join(';'),
       currency: "EUR",
     };
@@ -277,7 +277,7 @@ const RechargeForm: React.FC = () => {
                 (item) => item.amount !== "" && !isNaN(Number(item.amount))
               )
               .map((item, idx) => {
-                const op = operators.find((op) => op.id === charge.type);
+                const op = operators.find((op) => op.operatorId === Number(charge.type));
                 return (
                   <div
                     className="flex justify-between items-center border-b pb-2"

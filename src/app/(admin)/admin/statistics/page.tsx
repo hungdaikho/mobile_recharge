@@ -1,262 +1,161 @@
-'use client';
+"use client"
+import { fetchCountries } from '@/redux/country.slice'
+import { fetchOperators } from '@/redux/operator.slice'
+import { getStatistics } from '@/redux/statistics.slice'
+import { RootState } from '@/redux/store'
+import { Country, Operator, StatisticRequest, StatisticResponse } from '@/services/recharge.service'
+import dayjs from 'dayjs'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { DatePicker, Select, Card, Statistic, Table } from 'antd'
+import 'antd/dist/reset.css'
 
-import { useState, useEffect } from 'react';
-import { Card, DatePicker, Select, Table, Button, Row, Col, message } from 'antd';
-import type { RangePickerProps } from 'antd/es/date-picker';
-import dayjs from 'dayjs';
-import { useDispatch, useSelector } from 'react-redux';
-import { rechargeService } from '@/services/recharge.service';
-import type { StatisticsParams } from '@/services/recharge.service';
-import { fetchCountries } from '@/redux/country.slice';
-import { fetchStatisticsSummary, fetchOperatorStatistics } from '@/redux/statistics.slice';
-import type { RootState, AppDispatch } from '@/redux/store';
+const { RangePicker } = DatePicker
 
-const { RangePicker } = DatePicker;
+const StatisticPage = () => {
+  const dispatch = useDispatch()
+  const country: Array<Country> = useSelector((state: RootState) => state.country.countries)
+  const operator: Array<Operator> = useSelector((state: RootState) => state.operator.operators)
+  const [statistics, setStatistics] = useState<StatisticResponse[]>([])
+  const [filters, setFilters] = useState<StatisticRequest>({
+    fromDate: dayjs().format("YYYY-MM-DD"),
+    toDate: dayjs().format("YYYY-MM-DD"),
+  })
 
-export default function StatisticsPage() {
-  const dispatch = useDispatch<AppDispatch>();
-  const { countries } = useSelector((state: RootState) => state.country);
-  const { summary, operatorStats, loading, error } = useSelector((state: RootState) => state.statistics);
-  
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
-    dayjs().subtract(7, 'day'),
-    dayjs(),
-  ]);
-  const [selectedCountry, setSelectedCountry] = useState<string>('all');
-  const [selectedOperator, setSelectedOperator] = useState<string>('all');
-  const [groupBy, setGroupBy] = useState<'day' | 'month' | 'year'>('day');
-
-  useEffect(() => {
-    dispatch(fetchCountries());
-  }, [dispatch]);
+  // Lấy dữ liệu thống kê
+  const initStatistics = async () => {
+    const res = await dispatch(getStatistics(filters) as any)
+    setStatistics(res.payload || [])
+  }
 
   useEffect(() => {
-    if (error) {
-      message.error(error);
+    dispatch(fetchCountries() as any)
+    dispatch(fetchOperators() as any)
+  }, [])
+
+  useEffect(() => {
+    initStatistics()
+  }, [filters])
+
+  // Tính toán thống kê tổng
+  const totalTransactions = statistics.length
+  const totalAmountTopup = statistics
+    .filter(s => s.status === 'SUCCESS-TOPUP')
+    .reduce((sum, s) => sum + Number(s.amount), 0)
+  const totalAmountStripe = statistics
+    .filter(s => s.paymentMethod === 'STRIPE' && s.status !== 'FAILED')
+    .reduce((sum, s) => sum + Number(s.amount), 0)
+  const successCount = statistics.filter(s => s.status === 'SUCCESS-TOPUP').length
+  const successRate = totalTransactions ? (successCount / totalTransactions) * 100 : 0
+
+  // Dữ liệu cho bảng chi tiết theo operator
+  const operatorMap = new Map<string, {
+    operator: string,
+    country: string,
+    count: number,
+    topup: number,
+    stripe: number,
+    successCount: number
+  }>()
+  statistics.forEach(s => {
+    const key = `${s.operator}-${s.country}`
+    if (!operatorMap.has(key)) {
+      operatorMap.set(key, {
+        operator: typeof s.operator === 'string' ? s.operator : operator.find(o => o.operatorId === s.operator)?.name || '',
+        country: country.find(c => c.code === s.country)?.name || s.country,
+        count: 0,
+        topup: 0,
+        stripe: 0,
+        successCount: 0
+      })
     }
-  }, [error]);
-
-  const fetchData = async () => {
-    const [startDate, endDate] = dateRange;
-    const params: StatisticsParams = {
-      startDate: startDate.format('YYYY-MM-DD'),
-      endDate: endDate.format('YYYY-MM-DD'),
-      country: selectedCountry !== 'all' ? selectedCountry : undefined,
-      operator: selectedOperator !== 'all' ? selectedOperator : undefined,
-      groupBy,
-    };
-
-    await Promise.all([
-      dispatch(fetchStatisticsSummary(params)),
-      dispatch(fetchOperatorStatistics(params))
-    ]);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [dateRange, selectedCountry, selectedOperator, groupBy]);
-
-  const handleExport = async () => {
-    try {
-      const [startDate, endDate] = dateRange;
-      const response = await rechargeService.exportStatistics({
-        startDate: startDate.format('YYYY-MM-DD'),
-        endDate: endDate.format('YYYY-MM-DD'),
-        country: selectedCountry !== 'all' ? selectedCountry : undefined,
-        operator: selectedOperator !== 'all' ? selectedOperator : undefined,
-        format: 'excel'
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `statistics-${startDate.format('YYYY-MM-DD')}-${endDate.format('YYYY-MM-DD')}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      message.error('Failed to export statistics');
+    const item = operatorMap.get(key)!
+    item.count += 1
+    if (s.status === 'SUCCESS-TOPUP') {
+      item.topup += Number(s.amount)
+      item.successCount += 1
     }
-  };
+    if (s.paymentMethod === 'STRIPE' && s.status !== 'FAILED') item.stripe += Number(s.amount)
+  })
+  const tableData = Array.from(operatorMap.values()).map((item, idx) => ({
+    key: idx,
+    ...item,
+    topup: `₫${item.topup.toLocaleString()}`,
+    stripe: `₫${item.stripe.toLocaleString()}`,
+    successRate: item.count ? ((item.successCount / item.count) * 100).toFixed(2) : '0.00'
+  }))
 
-  const disabledDate: RangePickerProps['disabledDate'] = (current) => {
-    return current && current > dayjs().endOf('day');
-  };
+  // Cột bảng
+  const columns = [
+    { title: 'Operator', dataIndex: 'operator', key: 'operator' },
+    { title: 'Country', dataIndex: 'country', key: 'country' },
+    { title: 'Transactions', dataIndex: 'count', key: 'count' },
+    { title: 'Total Topup Amount', dataIndex: 'topup', key: 'topup' },
+    { title: 'Total Stripe Amount', dataIndex: 'stripe', key: 'stripe' },
+    { title: 'Success Rate', dataIndex: 'successRate', key: 'successRate', render: (v: string) => `${v}%` },
+  ]
 
-  const operatorColumns = [
-    {
-      title: 'Operator',
-      dataIndex: ['operator', 'name'],
-      key: 'operatorName',
-      render: (name: string, record: any) => (
-        <div className="flex items-center gap-2">
-          <span>{name}</span>
-        </div>
-      ),
-    },
-    {
-      title: 'Country',
-      dataIndex: ['operator', 'countryCode'],
-      key: 'countryCode',
-      render: (code: string) => {
-        const country = countries.find(c => c.code === code);
-        return country ? (
-          <div className="flex items-center gap-2">
-            <img src={country.flagUrl} alt={country.name} className="w-5 h-3" />
-            <span>{country.name}</span>
-          </div>
-        ) : code;
-      },
-    },
-    {
-      title: 'Total Transactions',
-      dataIndex: 'totalTransactions',
-      key: 'totalTransactions',
-      render: (value: number) => value.toLocaleString(),
-      sorter: (a: any, b: any) => a.totalTransactions - b.totalTransactions,
-    },
-    {
-      title: 'Total Amount',
-      dataIndex: 'totalAmount',
-      key: 'totalAmount',
-      render: (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      sorter: (a: any, b: any) => a.totalAmount - b.totalAmount,
-    },
-    {
-      title: 'Success Rate',
-      dataIndex: 'successRate',
-      key: 'successRate',
-      render: (rate: number) => (
-        <div className="flex items-center gap-2">
-          <span>{`${(rate * 100).toFixed(2)}%`}</span>
-          <div className="w-16 h-2 bg-gray-200 rounded-full">
-            <div 
-              className="h-full bg-green-500 rounded-full" 
-              style={{ width: `${rate * 100}%` }}
-            />
-          </div>
-        </div>
-      ),
-      sorter: (a: any, b: any) => a.successRate - b.successRate,
-    },
-  ];
+  // Filtered operators based on selected country
+  const filteredOperators = filters.country
+    ? operator.filter(o => o.countryCode === filters.country)
+    : operator
 
   return (
-    <div className="p-4 md:p-6">
-      <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Statistics & Reports</h1>
-
-      <Row gutter={[16, 16]} className="mb-4 md:mb-6">
-        <Col xs={24} md={8}>
-          <RangePicker
-            value={dateRange}
-            onChange={(dates: any) => dates && setDateRange(dates)}
-            disabledDate={disabledDate}
-            className="w-full"
-          />
-        </Col>
-        <Col xs={24} md={4}>
-          <Select
-            value={selectedCountry}
-            onChange={setSelectedCountry}
-            className="w-full"
-          >
-            <Select.Option value="all">All Countries</Select.Option>
-            {countries.map((country) => (
-              <Select.Option key={country.code} value={country.code}>
-                <div className="flex items-center gap-2">
-                  <img src={country.flagUrl} alt={country.name} className="w-5 h-3" />
-                  <span>{country.name}</span>
-                </div>
-              </Select.Option>
-            ))}
-          </Select>
-        </Col>
-        <Col xs={24} md={4}>
-          <Select
-            value={selectedOperator}
-            onChange={setSelectedOperator}
-            className="w-full"
-          >
-            <Select.Option value="all">All Operators</Select.Option>
-            {countries.flatMap(country => 
-              country.operators?.map(operator => (
-                <Select.Option key={operator.id} value={operator.id}>
-                  {operator.name}
-                </Select.Option>
-              ))
-            )}
-          </Select>
-        </Col>
-        <Col xs={24} md={4}>
-          <Select
-            value={groupBy}
-            onChange={setGroupBy}
-            className="w-full"
-          >
-            <Select.Option value="day">Daily</Select.Option>
-            <Select.Option value="month">Monthly</Select.Option>
-            <Select.Option value="year">Yearly</Select.Option>
-          </Select>
-        </Col>
-        <Col xs={24} md={4}>
-          <Button type="primary" onClick={handleExport} className="w-full">
-            Export
-          </Button>
-        </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} className="mb-4 md:mb-6">
-        <Col xs={24} sm={8}>
-          <Card title="Total Transactions" loading={loading} className="h-full">
-            <div className="text-2xl md:text-3xl font-bold">
-              {summary?.totalTransactions.toLocaleString() || 0}
-            </div>
-            <div className="text-gray-500 mt-2 text-sm md:text-base">
-              {dateRange[0].format('DD/MM/YYYY')} - {dateRange[1].format('DD/MM/YYYY')}
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card title="Total Amount" loading={loading} className="h-full">
-            <div className="text-2xl md:text-3xl font-bold">
-              ${summary?.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}
-            </div>
-            <div className="text-gray-500 mt-2 text-sm md:text-base">
-              {dateRange[0].format('DD/MM/YYYY')} - {dateRange[1].format('DD/MM/YYYY')}
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card title="Success Rate" loading={loading} className="h-full">
-            <div className="text-2xl md:text-3xl font-bold">
-              {(summary?.successRate || 0).toFixed(2)}%
-            </div>
-            <div className="text-gray-500 mt-2 text-sm md:text-base">
-              {dateRange[0].format('DD/MM/YYYY')} - {dateRange[1].format('DD/MM/YYYY')}
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      <Card title="Operator Statistics" className="mb-4 md:mb-6">
-        <div className="w-full overflow-x-auto">
-          <Table
-            columns={operatorColumns}
-            dataSource={operatorStats}
-            rowKey="operatorId"
-            loading={loading}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showTotal: (total) => `Total ${total} operators`,
-              responsive: true,
-              size: 'small',
-            }}
-            scroll={{ x: 'max-content' }}
-            size="small"
-          />
-        </div>
-      </Card>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Statistics & Reports</h2>
+      <div className="flex flex-wrap gap-4 mb-6">
+        <RangePicker
+          value={
+            filters.fromDate && filters.toDate
+              ? [dayjs(filters.fromDate), dayjs(filters.toDate)]
+              : undefined
+          }
+          onChange={(range) => setFilters({
+            ...filters,
+            fromDate: range && range[0] ? range[0].format('YYYY-MM-DD') : '',
+            toDate: range && range[1] ? range[1].format('YYYY-MM-DD') : ''
+          })}
+        />
+        <Select
+          allowClear
+          placeholder="All Countries"
+          value={filters.country}
+          onChange={country => setFilters({ ...filters, country })}
+          options={country.map(c => ({ label: c.name, value: c.code }))}
+          style={{ width: 180 }}
+        />
+        <Select
+          allowClear
+          placeholder="All Operators"
+          value={filters.operator}
+          onChange={operator => setFilters({ ...filters, operator })}
+          options={filteredOperators.map(o => ({ label: o.name, value: o.operatorId }))}
+          style={{ width: 180 }}
+        />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <Statistic title="Total Transactions" value={totalTransactions} />
+        </Card>
+        <Card>
+          <Statistic title="Total Topup Amount" value={totalAmountTopup} prefix="₫" precision={0} />
+        </Card>
+        <Card>
+          <Statistic title="Total Stripe Amount" value={totalAmountStripe} prefix="₫" precision={0} />
+        </Card>
+        <Card>
+          <Statistic title="Success Rate" value={successRate} suffix="%" precision={2} />
+        </Card>
+      </div>
+      <Table
+        columns={columns}
+        dataSource={tableData}
+        pagination={{ pageSize: 10 }}
+        bordered
+        className="bg-white"
+      />
     </div>
-  );
-} 
+  )
+}
+
+export default StatisticPage
