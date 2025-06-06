@@ -40,12 +40,12 @@ const StatisticPage = () => {
   // Tính toán thống kê tổng
   const totalTransactions = statistics.length
   const totalAmountTopup = statistics
-    .filter(s => s.status === 'SUCCESS-TOPUP')
+    .filter(s => s.status === 'SUCCESS-SUCCESS')
     .reduce((sum, s) => sum + Number(s.amount), 0)
   const totalAmountStripe = statistics
     .filter(s => s.paymentMethod === 'STRIPE' && s.status !== 'FAILED')
     .reduce((sum, s) => sum + Number(s.amount), 0)
-  const successCount = statistics.filter(s => s.status === 'SUCCESS-TOPUP').length
+  const successCount = statistics.filter(s => s.status === 'SUCCESS-SUCCESS').length
   const successRate = totalTransactions ? (successCount / totalTransactions) * 100 : 0
 
   // Dữ liệu cho bảng chi tiết theo operator
@@ -71,7 +71,7 @@ const StatisticPage = () => {
     }
     const item = operatorMap.get(key)!
     item.count += 1
-    if (s.status === 'SUCCESS-TOPUP') {
+    if (s.status === 'SUCCESS-SUCCESS') {
       item.topup += Number(s.amount)
       item.successCount += 1
     }

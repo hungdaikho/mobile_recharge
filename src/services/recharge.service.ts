@@ -163,7 +163,7 @@ export interface StatisticResponse {
   operator: string | number; // Có thể là ID hoặc UUID
   amount: number | string;
   currency: string; // e.g., "EUR", "VND"
-  status: 'PENDING' | 'SUCCESS-TOPUP' | 'SUCCESS-FAILED' | 'FAILED' | 'SUCCESS'; // Bạn có thể thêm các giá trị khác nếu có
+  status: 'PENDING' | 'SUCCESS-SUCCESS' | 'SUCCESS-FAILED' | 'FAILED' | 'SUCCESS'; // Bạn có thể thêm các giá trị khác nếu có
   type: 'TOPUP' | string; // Có thể thêm các loại khác nếu dùng
   paymentMethod: 'STRIPE' | string;
   createdAt: string; // ISO timestamp: 2025-06-06T13:19:06.052Z

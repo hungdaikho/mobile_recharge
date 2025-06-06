@@ -45,7 +45,7 @@ export default function AdminDashboard() {
     }
 
     // Tính toán các số liệu dashboard
-    const totalRecharges = statistics.filter(s => s.status === 'SUCCESS-TOPUP').length;
+    const totalRecharges = statistics.filter(s => s.status === 'SUCCESS-SUCCESS').length;
     const creditTransfers = totalRecharges;
     const totalTransactions = statistics.length;
 
