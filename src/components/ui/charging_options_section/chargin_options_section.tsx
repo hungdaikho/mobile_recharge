@@ -11,6 +11,7 @@ export default function ChargingOptionsSection() {
   return operators.operators.map((operator) => {
     return (
       <ChargingGroup
+        key={operator.id}
         title={operator.name}
         color={operator.color ?? "rgb(86, 0, 255)"}
         borderColor={operator.color ?? "rgb(86, 0, 255)"}

@@ -45,7 +45,6 @@ export default function Header() {
     const prefetchRoute = (path: string) => {
         router.prefetch(path);
     };
-
     return (
         <header
             className="md:fixed w-full top-0 py-4 z-10"
@@ -238,8 +237,7 @@ export default function Header() {
                             <Link href="/"
                                 onTouchStart={() => setActiveMenuIndex(0)}
                                 onMouseDown={() => setActiveMenuIndex(0)}
-                                onTouchEnd={() => setActiveMenuIndex(null)}
-                                onMouseUp={() => setActiveMenuIndex(null)}
+                                
                             >
                                 <p className={`flex gap-2 items-center py-4 px-4 border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 0 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-home w-8"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -252,8 +250,6 @@ export default function Header() {
                                 <summary className={`px-4 py-4 cursor-pointer flex justify-between items-center border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 1 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}
                                     onTouchStart={() => setActiveMenuIndex(1)}
                                     onMouseDown={() => setActiveMenuIndex(1)}
-                                    onTouchEnd={() => setActiveMenuIndex(null)}
-                                    onMouseUp={() => setActiveMenuIndex(null)}
                                 >
                                     <span className="flex gap-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-signal-high w-8"><path d="M2 20h.01"></path><path d="M7 20v-4"></path><path d="M12 20v-8"></path><path d="M17 20V8"></path></svg>
@@ -272,8 +268,6 @@ export default function Header() {
                                                     onClick={() => setShowMenu(false)}
                                                     onTouchStart={() => setActiveMenuIndex(100 + idx)}
                                                     onMouseDown={() => setActiveMenuIndex(100 + idx)}
-                                                    onTouchEnd={() => setActiveMenuIndex(null)}
-                                                    onMouseUp={() => setActiveMenuIndex(null)}
                                                 >
                                                     <p className={`flex gap-2 items-center py-2 px-4 rounded-2xl hover:bg-[rgb(59,130,246)] active:bg-[rgb(59,130,246)] ${activeMenuIndex === 100 + idx ? 'bg-[rgb(59,130,246)]' : ''}`}>{op.name}</p>
                                                 </Link>
@@ -291,8 +285,6 @@ export default function Header() {
                                 <summary className={`px-4 py-4 cursor-pointer flex justify-between items-center border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 2 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}
                                     onTouchStart={() => setActiveMenuIndex(2)}
                                     onMouseDown={() => setActiveMenuIndex(2)}
-                                    onTouchEnd={() => setActiveMenuIndex(null)}
-                                    onMouseUp={() => setActiveMenuIndex(null)}
                                 >
                                     <span className="flex gap-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-package w-8"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
@@ -311,8 +303,6 @@ export default function Header() {
                                                     onClick={() => setShowMenu(false)}
                                                     onTouchStart={() => setActiveMenuIndex(200 + idx)}
                                                     onMouseDown={() => setActiveMenuIndex(200 + idx)}
-                                                    onTouchEnd={() => setActiveMenuIndex(null)}
-                                                    onMouseUp={() => setActiveMenuIndex(null)}
                                                 >
                                                     <p className={`flex gap-2 items-center py-2 px-4 rounded-2xl hover:bg-[rgb(59,130,246)] active:bg-[rgb(59,130,246)] ${activeMenuIndex === 200 + idx ? 'bg-[rgb(59,130,246)]' : ''}`}>{op.name}</p>
                                                 </Link>
@@ -329,8 +319,7 @@ export default function Header() {
                             <Link href="/credit-transfer"
                                 onTouchStart={() => setActiveMenuIndex(3)}
                                 onMouseDown={() => setActiveMenuIndex(3)}
-                                onTouchEnd={() => setActiveMenuIndex(null)}
-                                onMouseUp={() => setActiveMenuIndex(null)}
+                                
                             >
                                 <p className={`flex gap-2 items-center py-4 px-4 border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 3 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevrons-right w-8"><path d="m6 17 5-5-5-5"></path><path d="m13 17 5-5-5-5"></path></svg>
@@ -342,8 +331,7 @@ export default function Header() {
                             <Link href="/international-cards"
                                 onTouchStart={() => setActiveMenuIndex(4)}
                                 onMouseDown={() => setActiveMenuIndex(4)}
-                                onTouchEnd={() => setActiveMenuIndex(null)}
-                                onMouseUp={() => setActiveMenuIndex(null)}
+                                
                             >
                                 <p className={`flex gap-2 items-center py-4 px-4 border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 4 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe w-8"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
@@ -355,8 +343,7 @@ export default function Header() {
                             <Link href="/gold-numbers"
                                 onTouchStart={() => setActiveMenuIndex(5)}
                                 onMouseDown={() => setActiveMenuIndex(5)}
-                                onTouchEnd={() => setActiveMenuIndex(null)}
-                                onMouseUp={() => setActiveMenuIndex(null)}
+                                
                             >
                                 <p className={`flex gap-2 items-center justify-between py-4 px-4 border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 5 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}>
                                     <span className="flex gap-2">
@@ -371,8 +358,7 @@ export default function Header() {
                             <Link href="/how-to-pay"
                                 onTouchStart={() => setActiveMenuIndex(6)}
                                 onMouseDown={() => setActiveMenuIndex(6)}
-                                onTouchEnd={() => setActiveMenuIndex(null)}
-                                onMouseUp={() => setActiveMenuIndex(null)}
+                                
                             >
                                 <p className={`flex gap-2 items-center py-4 px-4 border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 6 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield-question w-8"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>
@@ -384,10 +370,9 @@ export default function Header() {
                             <Link href="/faq"
                                 onTouchStart={() => setActiveMenuIndex(7)}
                                 onMouseDown={() => setActiveMenuIndex(7)}
-                                onTouchEnd={() => setActiveMenuIndex(null)}
-                                onMouseUp={() => setActiveMenuIndex(null)}
+                                
                             >
-                                <p className={`flex gap-2 items-center py-4 px-4 border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 7 ? 'bg-[rgb(59,130,246)]' : 'bg-blue-500'}`}>
+                                <p className={`flex gap-2 items-center py-4 px-4 border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 7 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-rows3 w-8"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M21 9H3"></path><path d="M21 15H3"></path></svg>
                                     FAQ
                                 </p>
@@ -397,8 +382,7 @@ export default function Header() {
                             <Link href="/news"
                                 onTouchStart={() => setActiveMenuIndex(8)}
                                 onMouseDown={() => setActiveMenuIndex(8)}
-                                onTouchEnd={() => setActiveMenuIndex(null)}
-                                onMouseUp={() => setActiveMenuIndex(null)}
+                                
                             >
                                 <p className={`flex gap-2 items-center py-4 px-4 border-2 border-[#47448d] rounded-2xl ${activeMenuIndex === 8 ? 'bg-[rgb(59,130,246)]' : 'bg-[#3a3e87c2]'}`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-mailbox w-8"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"></path><polyline points="15,9 18,9 18,11"></polyline><path d="M6.5 5C9 5 11 7 11 9.5V17a2 2 0 0 1-2 2v0"></path><line x1="6" x2="7" y1="10" y2="10"></line></svg>

@@ -12,7 +12,7 @@ export default function Home() {
   const initApiStripe = async () => {
     const response = await dispatch(getApiKeyStripe() as any)
     if (response.payload) {
-      setApiKey(response.payload.publickKey)
+      setApiKey(response.payload.publicKey)
     }
   }
   useEffect(() => {

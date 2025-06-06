@@ -525,13 +525,13 @@ class RechargeService extends ServiceBase {
     return this.get(url)
   }
   createFaqContent = async (data: CreateFaqContentRequest) => {
-    return this.post('/faq', data)
+    return this.post('/faq/create', data)
   }
   updateFaqContent = async (id: string, data: UpdateFaqContentRequest) => {
-    return this.post(`/faq/${id}`, data)
+    return this.post(`/faq/update/${id}`, data)
   }
   deleteFaqContent = async (id: string) => {
-    return this.delete(`/faq/${id}`)
+    return this.post(`/faq/delete`,{id})
   }
 }
 export interface CreateFaqContentRequest{
@@ -543,10 +543,10 @@ export interface UpdateFaqContentRequest{
   solve?: string
 }
 export interface IPaymentStripeRequest{
-  phoneNumber: string,
+  phoneNumber: string | number,
   country: string,
   operator: string,
-  amount: number,
+  amount: string,
   currency: string
 }
 export const rechargeService = new RechargeService();
